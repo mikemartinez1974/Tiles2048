@@ -2067,7 +2067,7 @@ Hammer.defaults = {
     /**
      * Some CSS properties can be used to improve the working of Hammer.
      * Add them to this method and they will be set when creating a new Manager.
-     * @namespace
+     *  @namespace
      */
     cssProps: {
         /**

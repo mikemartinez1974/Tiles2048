@@ -1148,5 +1148,3 @@ $(function () {
     gameBoard.startGame();
     //gameBoard.logPastStates();
 });
-
-

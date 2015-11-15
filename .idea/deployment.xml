@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="Local IIS" uploadOnCheckin="cda645e2-82ad-4cee-96d3-6285d3593d17">
+    <serverData>
+      <paths name="Local IIS">
+        <serverdata>
+          <mappings>
+            <mapping deploy="2048" local="$PROJECT_DIR$" web="/2048" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myUploadOnCheckinName" value="Local IIS" />
+  </component>
+</project>

@@ -1,7 +1,7 @@
 /*!
  * VERSION: 1.17.0
  * DATE: 2015-05-27
- * UPDATES AND DOCS AT: http://greensock.com
+ * UPDATES AND DOCS AT:  http://greensock.com
  *
  * @license Copyright (c) 2008-2015, GreenSock. All rights reserved.
  * This work is subject to the terms at http://greensock.com/standard-license or for

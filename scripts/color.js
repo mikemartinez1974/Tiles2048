@@ -1,7 +1,7 @@
 /**
  * @license Colors JS Library v1.2.4
  * Copyright 2012-2013 Matt Jordan
- * Licensed under Creative Commons Attribution-ShareAlike 3.0 Unported. (http://creativecommons.org/licenses/by-sa/3.0/)
+ * Licensed under Creative Commons Attribution-ShareAlike 3.0 Unported.  (http://creativecommons.org/licenses/by-sa/3.0/)
  * https://github.com/mbjordan/Colors
  */
 
