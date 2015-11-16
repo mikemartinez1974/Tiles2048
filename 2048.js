@@ -378,7 +378,6 @@ $(function () {
         }
     };
 
-
     GameBoard.prototype.attachInputEvents = function () {
 
         $("body").on("keydown", function() {
@@ -386,13 +385,19 @@ $(function () {
         });
 
         //noinspection JSCheckFunctionSignatures
-        this.hammer = new Hammer("body");
-        this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL});
+        this.hammer = new Hammer(document.getElementById(gameBoard.id));
+        //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_HORIZONTAL,velocity:1});
+        //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_VERTICAL,velocity:10});
 
-        this.hammer.on("swipeup",gameBoard.onKeyDown({keyCode:37}));
-        this.hammer.on("swiperight",gameBoard.onKeyDown({keyCode:40}));
-        this.hammer.on("swipedown",gameBoard.onKeyDown({keyCode:39}));
-        this.hammer.on("swipeleft",gameBoard.onKeyDown({keyCode:38}));
+        this.hammer.on("swipeup",gameBoard.onKeyDown);
+        this.hammer.on("swiperight",gameBoard.onKeyDown);
+        this.hammer.on("swipedown",gameBoard.onKeyDown);
+        this.hammer.on("swipeleft",gameBoard.onKeyDown);
+
+        //this.hammer.on("swipeup",gameBoard.onKeyDown({keyCode:38}));
+        //this.hammer.on("swiperight",gameBoard.onKeyDown({keyCode:39}));
+        //this.hammer.on("swipedown",gameBoard.onKeyDown({keyCode:40}));
+        //this.hammer.on("swipeleft",gameBoard.onKeyDown({keyCode:37}));
 
         //$("body").bind("swipeone", function(){ alert("swipe"); });
         //
@@ -507,7 +512,7 @@ $(function () {
     };
     GameBoard.prototype.removeInputEvents = function () {
         $(document).unbind("keydown");
-        this.hammer.destroy();
+        //this.hammer.destroy();
         //$(document).unbind("swipeUp");
         //$(document).unbind("swipeLeft");
         //$(document).unbind("swipeDown");
