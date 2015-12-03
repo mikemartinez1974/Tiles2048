@@ -384,14 +384,16 @@ $(function () {
         });
 
         //noinspection JSCheckFunctionSignatures
-        this.hammer = new Hammer(document.getElementById(gameBoard.id));
+        //this.hammer = new Hammer(document.getElementById(gameBoard.id));
+        this.hammer = new Hammer(document.body);
+        this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL});
         //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_HORIZONTAL,velocity:1});
         //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_VERTICAL,velocity:10});
 
-        this.hammer.on("swipeup",gameBoard.onKeyDown);
-        this.hammer.on("swiperight",gameBoard.onKeyDown);
-        this.hammer.on("swipedown",gameBoard.onKeyDown);
-        this.hammer.on("swipeleft",gameBoard.onKeyDown);
+        this.hammer.on("swipeup",gameBoard.onSwipeUp);
+        this.hammer.on("swiperight",gameBoard.onSwipeRight);
+        this.hammer.on("swipedown",gameBoard.onSwipeDown);
+        this.hammer.on("swipeleft",gameBoard.onSwipeLeft);
 
         //this.hammer.on("swipeup",gameBoard.onKeyDown({keyCode:38}));
         //this.hammer.on("swiperight",gameBoard.onKeyDown({keyCode:39}));
@@ -445,6 +447,18 @@ $(function () {
         //    alert("swipeRight");
         //    this.onKeyDown({keyCode:40});
         //});
+    };
+    GameBoard.prototype.onSwipeUp = function (event) {
+        gameBoard.onKeyDown({keyCode:38});
+    };
+    GameBoard.prototype.onSwipeDown = function (event) {
+        gameBoard.onKeyDown({keyCode:40});
+    };
+    GameBoard.prototype.onSwipeLeft = function (event) {
+        gameBoard.onKeyDown({keyCode:37});
+    };
+    GameBoard.prototype.onSwipeRight = function (event) {
+        gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
 
