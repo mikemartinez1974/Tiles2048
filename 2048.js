@@ -11,7 +11,7 @@ $(function () {
     "use strict";
 
     function scale(value) {
-        var multiplier = 0.85;
+        var multiplier = 0.80;
         return value * multiplier;
     }
 
@@ -737,8 +737,8 @@ $(function () {
             //this.pastStates[this.turnIndex] = pastTurn;
             this.pastStates.push(pastTurn);
             if(this.pastStates.length > 5) {
-                var lastFive = this.pastStates.slice(1,6);
-                this.pastStates = lastFive;
+                var lastFiveStates = this.pastStates.slice(1,6);
+                this.pastStates = lastFiveStates;
             }
             //console.log("PastStates Length: " + JSON.stringify(this.pastStates).length);
             //this.logPastStates();
@@ -1083,7 +1083,7 @@ $(function () {
             " style='top:" + this.space.position().top + "; left:" + this.space.position().left + ";" +
             " color:" + this.color + "; " +
             " background-color:" + this.bgColor + ";" +
-            " height:" + this.space.width + "px;" +
+            " height:" + this.space.width+ "px;" +
             " width:" + this.space.width + "px;" +
             " border-width:" + ( this.space.width / 15 ) + "px;" +
             " border-radius:" + ( this.space.width / 15 ) + "px; " +
