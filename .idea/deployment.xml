@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="Local IIS" uploadOnCheckin="cda645e2-82ad-4cee-96d3-6285d3593d17">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Localhost" uploadOnCheckin="802b4b99-5159-4864-888e-91d8c1163f5f">
     <serverData>
-      <paths name="Local IIS">
+      <paths name="Localhost">
         <serverdata>
           <mappings>
-            <mapping deploy="2048" local="$PROJECT_DIR$" web="/2048" />
+            <mapping deploy="." local="$PROJECT_DIR$" web="/2048" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
-    <option name="myUploadOnCheckinName" value="Local IIS" />
+    <option name="myUploadOnCheckinName" value="Localhost" />
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

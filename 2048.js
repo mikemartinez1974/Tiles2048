@@ -10,10 +10,8 @@ $(function () {
 
     "use strict";
 
-    function scale(value)
-    {
-        var multiplier = 0.85;
-
+    function scale(value) {
+        var multiplier = 0.80;
         return value * multiplier;
     }
 
@@ -129,6 +127,7 @@ $(function () {
         this.id = id || "gameOverBox";
     }
 
+
     GameOverBox.prototype = new GameObject();
     GameOverBox.prototype.constructor = GameOverBox;
     GameOverBox.prototype.html = function () {
@@ -240,6 +239,7 @@ $(function () {
         this.type = "GameBoard";
         this.id = id || "Board1";
         this.timeline = new TimelineLite();
+        this.timeline.autoRemoveChildren = true;
 
         var _tileSize = 0;
         Object.defineProperty(this, "tileSize", {
@@ -377,7 +377,6 @@ $(function () {
             this.attachInputEvents();
         }
     };
-
     GameBoard.prototype.attachInputEvents = function () {
 
         $("body").on("keydown", function() {
@@ -385,14 +384,16 @@ $(function () {
         });
 
         //noinspection JSCheckFunctionSignatures
-        this.hammer = new Hammer(document.getElementById(gameBoard.id));
+        //this.hammer = new Hammer(document.getElementById(gameBoard.id));
+        this.hammer = new Hammer(document.body);
+        this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL});
         //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_HORIZONTAL,velocity:1});
         //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_VERTICAL,velocity:10});
 
-        this.hammer.on("swipeup",gameBoard.onKeyDown);
-        this.hammer.on("swiperight",gameBoard.onKeyDown);
-        this.hammer.on("swipedown",gameBoard.onKeyDown);
-        this.hammer.on("swipeleft",gameBoard.onKeyDown);
+        this.hammer.on("swipeup",gameBoard.onSwipeUp);
+        this.hammer.on("swiperight",gameBoard.onSwipeRight);
+        this.hammer.on("swipedown",gameBoard.onSwipeDown);
+        this.hammer.on("swipeleft",gameBoard.onSwipeLeft);
 
         //this.hammer.on("swipeup",gameBoard.onKeyDown({keyCode:38}));
         //this.hammer.on("swiperight",gameBoard.onKeyDown({keyCode:39}));
@@ -447,7 +448,20 @@ $(function () {
         //    this.onKeyDown({keyCode:40});
         //});
     };
+    GameBoard.prototype.onSwipeUp = function (event) {
+        gameBoard.onKeyDown({keyCode:38});
+    };
+    GameBoard.prototype.onSwipeDown = function (event) {
+        gameBoard.onKeyDown({keyCode:40});
+    };
+    GameBoard.prototype.onSwipeLeft = function (event) {
+        gameBoard.onKeyDown({keyCode:37});
+    };
+    GameBoard.prototype.onSwipeRight = function (event) {
+        gameBoard.onKeyDown({keyCode:39});
+    };
     GameBoard.prototype.onKeyDown = function (event) {
+
         var undoWasPlayed = false;
         var direction = "";
         var goodKey =
@@ -495,31 +509,37 @@ $(function () {
                 }
 
                 this.timeline.add(tileFactory.timeline, "start");
+
                 this.timeline.eventCallback("onComplete", this.onAnimationComplete, null, this);
 
                 this.timeline.play();
             }
+
+            console.log(this.timeline.getChildren());
         }
     };
     GameBoard.prototype.beginningOfTurn = function () {
-        console.clear();
+        //console.clear();
 
         //this.turnIndex += 1;
-
 
         this.timeline = new TimelineLite();
         this.timeline.addLabel("start", 0);
     };
     GameBoard.prototype.removeInputEvents = function () {
-        $(document).unbind("keydown");
+
+        $("body").off("keydown");
+        this.hammer.off("swipeup");
+        this.hammer.off("swiperight");
+        this.hammer.off("swipedown");
+        this.hammer.off("swipeleft");
+
         //this.hammer.destroy();
         //$(document).unbind("swipeUp");
         //$(document).unbind("swipeLeft");
         //$(document).unbind("swipeDown");
         //$(document).unbind("swipeRight");
     };
-
-
     GameBoard.prototype.moveTiles = function (direction) {
         var r, c;
         var matrixLength = this.matrix.length;
@@ -602,8 +622,12 @@ $(function () {
         }
     };
     GameBoard.prototype.onAnimationComplete = function () {
-
-        this.endOfTurn();
+        //console.trace();
+        //console.log(gameBoard.timeline);
+        //console.log("done.");
+        //console.log(gameBoard.timeline.tweens);
+        //console.log(this.caller)
+        gameBoard.endOfTurn();
     };
     GameBoard.prototype.undo = function () {
         this.pastStates = this.pastStates.slice(0, this.turnIndex);
@@ -627,13 +651,13 @@ $(function () {
                 }
             });
 
-            var newBoard = this.pastStates[this.turnIndex - 1];
+            var newBoard = gameBoard.pastStates[gameBoard.turnIndex - 1];
             var rowLength = newBoard.board.length;
             var colLength = newBoard.board[0].length;
             for (var r = 0; r < rowLength; r += 1) {
                 for (var c = 0; c < colLength; c += 1) {
                     var tv = newBoard.board[r][c];
-                    var space = this.matrix[r][c];
+                    var space = gameBoard.matrix[r][c];
                     if (tv > 0) {
                         tileFactory.createNewTile(space, tv);
                     }
@@ -654,24 +678,24 @@ $(function () {
             this.mulligans -= 1;
             controls.updateMulligans();
             this.turnIndex -= 1;
-            console.clear();
+            //console.clear();
         }
     };
     GameBoard.prototype.endOfTurn = function () {
         var outOfMoves = !this.hasOptions();
+        if (outOfMoves) {
+            this.youLose();
+        }
+
 
         if (this.okToAddTile) {
             this.addTile();
             this.okToAddTile = false;
         }
 
-        this.attachInputEvents();
-
         this.saveBoardState();
 
-        if (outOfMoves) {
-            this.youLose();
-        }
+        this.attachInputEvents();
     };
     GameBoard.prototype.addTile = function () {
         var rndA, rndB;
@@ -701,7 +725,7 @@ $(function () {
             var newLayer = [];
             for (var r = 0; r < rLength; r += 1) {
                 newLayer.push([]);
-                for (var c = 0; c < cLength; c += 1) {
+                    for (var c = 0; c < cLength; c += 1) {
                     newLayer[r].push(this.matrix[r][c].value());
                 }
             }
@@ -710,8 +734,13 @@ $(function () {
             pastTurn.board = newLayer;
             pastTurn.score = scoreBoard.points;
             pastTurn.hiScore = scoreBoard.personalBest;
-            this.pastStates[this.turnIndex] = pastTurn;
-
+            //this.pastStates[this.turnIndex] = pastTurn;
+            this.pastStates.push(pastTurn);
+            if(this.pastStates.length > 5) {
+                var lastFiveStates = this.pastStates.slice(1,6);
+                this.pastStates = lastFiveStates;
+            }
+            //console.log("PastStates Length: " + JSON.stringify(this.pastStates).length);
             //this.logPastStates();
         }
     };
@@ -812,27 +841,26 @@ $(function () {
     };
 
 
-    //GameBoard.prototype.logPastStates = function () {
-    //    console.clear();
-    //    //this.pastStates.reverse();
-    //    this.pastStates.forEach(function (turn, index, array) {
-    //        if (turn !== undefined) {
-    //            var rowOutput = "";
-    //            rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
-    //            rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
-    //            rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
-    //            rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
-    //
-    //            //console.log(turn);
-    //            console.log(rowOutput);
-    //            console.log("score: " + turn.score);
-    //            console.log("index: " + index);
-    //            console.log(array);
-    //        }
-    //    });
-    //    //this.pastStates.reverse();
-    //};
+    GameBoard.prototype.logPastStates = function () {
+        console.clear();
+        //this.pastStates.reverse();
+        this.pastStates.forEach(function (turn, index, array) {
+            if (turn !== undefined) {
+                var rowOutput = "";
+                rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
+                rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
+                rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
+                rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
 
+                //console.log(turn);
+                console.log(rowOutput);
+                console.log("score: " + turn.score);
+                console.log("index: " + index);
+                console.log(array);
+            }
+        });
+        //this.pastStates.reverse();
+    };
 
 
     //object
@@ -918,6 +946,7 @@ $(function () {
                 }
 
                 factory.timeline.add(thisTile.timeline, "start");
+
             });
             this.timeline.eventCallback("onComplete", this.fixAllTiles, null, this);
         },
@@ -1020,6 +1049,7 @@ $(function () {
                 _hasMerged = val;
             }
         });
+        this.timeline.autoRemoveChildren = true;
     }
     Tile2048.prototype = new GameObject();
     Tile2048.prototype.constructor = Tile2048;
@@ -1053,7 +1083,7 @@ $(function () {
             " style='top:" + this.space.position().top + "; left:" + this.space.position().left + ";" +
             " color:" + this.color + "; " +
             " background-color:" + this.bgColor + ";" +
-            " height:" + this.space.width + "px;" +
+            " height:" + this.space.width+ "px;" +
             " width:" + this.space.width + "px;" +
             " border-width:" + ( this.space.width / 15 ) + "px;" +
             " border-radius:" + ( this.space.width / 15 ) + "px; " +
