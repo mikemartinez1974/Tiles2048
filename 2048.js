@@ -1,17 +1,27 @@
+/**
+ * Created by Mike on 12/12/2015.
+ */
 //2048 tiles
 
 /* global TweenLite */
 /* global TimelineLite */
 /* global console */
 /* global $c */
-/* global $ */
 
+/* global $ */
 $(function () {
 
     "use strict";
 
+    var multiplier = 1;
+
+    function setScale() {
+        multiplier = window.innerWidth/(gameBoard.totalWidth() + 50);
+        if (multiplier > 2) { multiplier = 2; }
+        console.log(multiplier);
+    }
+
     function scale(value) {
-        var multiplier = 0.80;
         return value * multiplier;
     }
 
@@ -127,7 +137,6 @@ $(function () {
         this.id = id || "gameOverBox";
     }
 
-
     GameOverBox.prototype = new GameObject();
     GameOverBox.prototype.constructor = GameOverBox;
     GameOverBox.prototype.html = function () {
@@ -239,7 +248,6 @@ $(function () {
         this.type = "GameBoard";
         this.id = id || "Board1";
         this.timeline = new TimelineLite();
-        this.timeline.autoRemoveChildren = true;
 
         var _tileSize = 0;
         Object.defineProperty(this, "tileSize", {
@@ -271,6 +279,8 @@ $(function () {
                 " height:" + (this.tileSize * this.boardSize) + "px; border-radius:" + this.boardSize + "px;'" +
                 "></div>";
         };
+
+
 
         this.totalWidth = function () {
             return this.tileSize * this.boardSize / 10 * 2 + this.tileSize * this.boardSize;
@@ -380,78 +390,23 @@ $(function () {
     GameBoard.prototype.attachInputEvents = function () {
 
         $("body").on("keydown", function() {
-           gameBoard.onKeyDown(event);
+            gameBoard.onKeyDown(event);
         });
 
         //noinspection JSCheckFunctionSignatures
-        //this.hammer = new Hammer(document.getElementById(gameBoard.id));
-        this.hammer = new Hammer(document.body);
-        this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL});
-        //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_HORIZONTAL,velocity:1});
-        //this.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_VERTICAL,velocity:10});
+        gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
+        gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:1});
 
-        this.hammer.on("swipeup",gameBoard.onSwipeUp);
-        this.hammer.on("swiperight",gameBoard.onSwipeRight);
-        this.hammer.on("swipedown",gameBoard.onSwipeDown);
-        this.hammer.on("swipeleft",gameBoard.onSwipeLeft);
-
-        //this.hammer.on("swipeup",gameBoard.onKeyDown({keyCode:38}));
-        //this.hammer.on("swiperight",gameBoard.onKeyDown({keyCode:39}));
-        //this.hammer.on("swipedown",gameBoard.onKeyDown({keyCode:40}));
-        //this.hammer.on("swipeleft",gameBoard.onKeyDown({keyCode:37}));
-
-        //$("body").bind("swipeone", function(){ alert("swipe"); });
-        //
-        //$("body").bind("swipeup" , function () {
-        //    //alert("swipeUp");
-        //    //this.onKeyDown({keyCode:37});
-        //    gameBoard.onKeyDown({keyCode:37});
-        //});
-        //
-        //$("body").bind("swipeleft" , function () {
-        //    //alert("swipeLeft");
-        //    gameBoard.onKeyDown({keyCode:38});
-        //});
-        //
-        //$("body").bind("swipedown" , function () {
-        //    //alert("swipeDown");
-        //    gameBoard.onKeyDown({keyCode:39});
-        //});
-        //
-        //$("body").bind("swiperight" , function () {
-        //    //alert("swipeRight");
-        //    gameBoard.onKeyDown({keyCode:40});
-        //});
-
-        //$(document).keydown($.proxy(function (event) {
-        //    this.onKeyDown(event);
-        //}, gameBoard));
-        //
-        //$(document).bind("swipeUp" , function () {
-        //    alert("swipeUp");
-        //   //this.onKeyDown({keyCode:37});
-        //    gameBoard.onKeyDown({keyCode:37});
-        //});
-        //
-        //$(document).bind("swipeLeft" , function () {
-        //    alert("swipeLeft");
-        //    this.onKeyDown({keyCode:38});
-        //});
-        //
-        //$(document).bind("swipeDown" , function () {
-        //    alert("swipeDown");
-        //    this.onKeyDown({keyCode:39});
-        //});
-        //
-        //$(document).bind("swipeRight" , function () {
-        //    alert("swipeRight");
-        //    this.onKeyDown({keyCode:40});
-        //});
+        gameBoard.hammer.on("swipeup",gameBoard.onSwipeUp);
+        gameBoard.hammer.on("swiperight",gameBoard.onSwipeRight);
+        gameBoard.hammer.on("swipedown",gameBoard.onSwipeDown);
+        gameBoard.hammer.on("swipeleft",gameBoard.onSwipeLeft);
     };
     GameBoard.prototype.onSwipeUp = function (event) {
         gameBoard.onKeyDown({keyCode:38});
     };
     GameBoard.prototype.onSwipeDown = function (event) {
+        console.log("swipe up");
         gameBoard.onKeyDown({keyCode:40});
     };
     GameBoard.prototype.onSwipeLeft = function (event) {
@@ -461,7 +416,6 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
-
         var undoWasPlayed = false;
         var direction = "";
         var goodKey =
@@ -469,12 +423,12 @@ $(function () {
                 event.keyCode === 38 ? true :
                     event.keyCode === 39 ? true :
                         event.keyCode === 40 ? true :
-                        event.keyCode === "undo";
+                            event.keyCode === "undo" ? true : false;
 
         if (goodKey) {
 
-            this.beginningOfTurn();
-            this.removeInputEvents();
+            gameBoard.beginningOfTurn();
+            gameBoard.removeInputEvents();
             switch (event.keyCode) {
                 case 38:  //north
                     direction = "north";
@@ -498,47 +452,34 @@ $(function () {
 
             if (undoWasPlayed) {
                 //undoWasPlayed = false;
-                this.undo();
-                this.attachInputEvents();
+                gameBoard.undo();
+                gameBoard.attachInputEvents();
             }
             else {
-                this.turnIndex += 1;
-                this.moveTiles(direction);
+                gameBoard.moveTiles(direction);
                 if (tileFactory.somethingHasMoved) {
                     tileFactory.commit();
                 }
 
-                this.timeline.add(tileFactory.timeline, "start");
+                gameBoard.timeline.add(tileFactory.timeline, "start");
+                gameBoard.timeline.eventCallback("onComplete", gameBoard.onAnimationComplete, null, gameBoard);
 
-                this.timeline.eventCallback("onComplete", this.onAnimationComplete, null, this);
-
-                this.timeline.play();
+                gameBoard.timeline.play();
             }
-
-            console.log(this.timeline.getChildren());
         }
     };
     GameBoard.prototype.beginningOfTurn = function () {
         //console.clear();
 
         //this.turnIndex += 1;
+        //console.log("Turn: " + gameBoard.turnIndex);
 
         this.timeline = new TimelineLite();
         this.timeline.addLabel("start", 0);
     };
     GameBoard.prototype.removeInputEvents = function () {
-
-        $("body").off("keydown");
-        this.hammer.off("swipeup");
-        this.hammer.off("swiperight");
-        this.hammer.off("swipedown");
-        this.hammer.off("swipeleft");
-
-        //this.hammer.destroy();
-        //$(document).unbind("swipeUp");
-        //$(document).unbind("swipeLeft");
-        //$(document).unbind("swipeDown");
-        //$(document).unbind("swipeRight");
+        $("body").unbind("keydown");
+        this.hammer.destroy();
     };
     GameBoard.prototype.moveTiles = function (direction) {
         var r, c;
@@ -622,15 +563,13 @@ $(function () {
         }
     };
     GameBoard.prototype.onAnimationComplete = function () {
-        //console.trace();
-        //console.log(gameBoard.timeline);
-        //console.log("done.");
-        //console.log(gameBoard.timeline.tweens);
-        //console.log(this.caller)
-        gameBoard.endOfTurn();
+
+        this.endOfTurn();
     };
     GameBoard.prototype.undo = function () {
-        this.pastStates = this.pastStates.slice(0, this.turnIndex);
+
+
+        console.log(gameBoard.pastStates);
 
         if (this.turnIndex < 1) {
             return;
@@ -638,6 +577,8 @@ $(function () {
         if (this.mulligans === 0) {
             return;
         }
+
+        this.pastStates = this.pastStates.slice(0, this.turnIndex);
 
         try {
 
@@ -652,6 +593,9 @@ $(function () {
             });
 
             var newBoard = gameBoard.pastStates[gameBoard.turnIndex - 1];
+
+            //console.log(newBoard);
+
             var rowLength = newBoard.board.length;
             var colLength = newBoard.board[0].length;
             for (var r = 0; r < rowLength; r += 1) {
@@ -683,19 +627,19 @@ $(function () {
     };
     GameBoard.prototype.endOfTurn = function () {
         var outOfMoves = !this.hasOptions();
+
+        if (this.okToAddTile) {
+            gameBoard.turnIndex += 1;
+            this.addTile();
+            this.okToAddTile = false;
+            this.saveBoardState();
+        }
+
+        this.attachInputEvents();
+
         if (outOfMoves) {
             this.youLose();
         }
-
-
-        if (this.okToAddTile) {
-            this.addTile();
-            this.okToAddTile = false;
-        }
-
-        this.saveBoardState();
-
-        this.attachInputEvents();
     };
     GameBoard.prototype.addTile = function () {
         var rndA, rndB;
@@ -725,7 +669,7 @@ $(function () {
             var newLayer = [];
             for (var r = 0; r < rLength; r += 1) {
                 newLayer.push([]);
-                    for (var c = 0; c < cLength; c += 1) {
+                for (var c = 0; c < cLength; c += 1) {
                     newLayer[r].push(this.matrix[r][c].value());
                 }
             }
@@ -734,14 +678,11 @@ $(function () {
             pastTurn.board = newLayer;
             pastTurn.score = scoreBoard.points;
             pastTurn.hiScore = scoreBoard.personalBest;
-            //this.pastStates[this.turnIndex] = pastTurn;
-            this.pastStates.push(pastTurn);
-            if(this.pastStates.length > 5) {
-                var lastFiveStates = this.pastStates.slice(1,6);
-                this.pastStates = lastFiveStates;
-            }
-            //console.log("PastStates Length: " + JSON.stringify(this.pastStates).length);
-            //this.logPastStates();
+            this.pastStates[this.turnIndex] = pastTurn;
+
+            //gameBoard.logPastStates();
+            console.log("Turn: " + gameBoard.turnIndex);
+            console.log(gameBoard.pastStates);
         }
     };
     GameBoard.prototype.hasOptions = function () {
@@ -841,26 +782,27 @@ $(function () {
     };
 
 
-    GameBoard.prototype.logPastStates = function () {
-        console.clear();
-        //this.pastStates.reverse();
-        this.pastStates.forEach(function (turn, index, array) {
-            if (turn !== undefined) {
-                var rowOutput = "";
-                rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
-                rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
-                rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
-                rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
+    //GameBoard.prototype.logPastStates = function () {
+    //    console.clear();
+    //    //this.pastStates.reverse();
+    //    this.pastStates.forEach(function (turn, index, array) {
+    //        if (turn !== undefined) {
+    //            var rowOutput = "";
+    //            rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
+    //            rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
+    //            rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
+    //            rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
+    //
+    //            //console.log(turn);
+    //            console.log(rowOutput);
+    //            console.log("score: " + turn.score);
+    //            console.log("index: " + index);
+    //            console.log(array);
+    //        }
+    //    });
+    //    //this.pastStates.reverse();
+    //};
 
-                //console.log(turn);
-                console.log(rowOutput);
-                console.log("score: " + turn.score);
-                console.log("index: " + index);
-                console.log(array);
-            }
-        });
-        //this.pastStates.reverse();
-    };
 
 
     //object
@@ -946,7 +888,6 @@ $(function () {
                 }
 
                 factory.timeline.add(thisTile.timeline, "start");
-
             });
             this.timeline.eventCallback("onComplete", this.fixAllTiles, null, this);
         },
@@ -1049,7 +990,6 @@ $(function () {
                 _hasMerged = val;
             }
         });
-        this.timeline.autoRemoveChildren = true;
     }
     Tile2048.prototype = new GameObject();
     Tile2048.prototype.constructor = Tile2048;
@@ -1083,7 +1023,7 @@ $(function () {
             " style='top:" + this.space.position().top + "; left:" + this.space.position().left + ";" +
             " color:" + this.color + "; " +
             " background-color:" + this.bgColor + ";" +
-            " height:" + this.space.width+ "px;" +
+            " height:" + this.space.width + "px;" +
             " width:" + this.space.width + "px;" +
             " border-width:" + ( this.space.width / 15 ) + "px;" +
             " border-radius:" + ( this.space.width / 15 ) + "px; " +
@@ -1118,9 +1058,10 @@ $(function () {
         this.needsToMove = false;
     };
     Tile2048.prototype.fadeIn = function () {
-        this.timeline.to(this.selector(), this.factory.animateDuration, {
-            autoAlpha: 1
-        }, "start");
+        this.timeline.from(this.element(), this.factory.animateDuration, {
+            autoAlpha: 0
+        });
+
     };
     Tile2048.prototype.die = function () {
         this.timeline.to(this.element(),
@@ -1166,7 +1107,7 @@ $(function () {
             $("#btnUndo").text("Undo (" + parseInt(gameBoard.mulligans, 10) + ")");
         },
         restart: function () {
-            console.log("restarting...");
+            //console.log("restarting...");
             gameBoard.startGame();
         }
     };
@@ -1175,6 +1116,7 @@ $(function () {
     var gameBoard = new GameBoard("gameBoard");
     gameBoard.boardSize = 4;
     gameBoard.tileSize = 75;
+    setScale();
     gameBoard.setup();
     var scoreBoard = new ScoreBoard("scoreBoard");
     scoreBoard.render();
