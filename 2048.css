@@ -74,8 +74,18 @@ body {
     background-size: 100%;
     background-origin: padding-box;
     border: solid black;
-    text-align: center;
-    line-height: .8;
+    /*text-align: center;*/
+    /*line-height: .8;*/
+
+    
+}
+
+.value {
+    position: absolute;
+    margin: 0;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
 }
 
 .mcfGameOver {
