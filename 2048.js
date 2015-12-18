@@ -16,19 +16,26 @@ $(function () {
     var multiplier = 1;
 
     function setScale() {
-        multiplier = window.innerWidth/(gameBoard.totalWidth() + 50);
-        if (multiplier > 2) { multiplier = 2; }
-        console.log(multiplier);
+        var boardsize = gameBoard.totalWidth() + 200;
+        var winWidth = window.innerWidth;
+        var winHeight = $("body" )[0].clientHeight;
+
+        multiplier = winWidth / boardsize ;
+
+        if( ((boardsize * multiplier) + 300) > winHeight )
+        {
+            multiplier = winHeight / boardsize ;
+        }
+
     }
 
     function scale(value) {
-        return value * multiplier;
+        return Math.floor(value * multiplier);
     }
 
     //object
     function GameObject() {
     }
-
     GameObject.prototype.remove = function () {
         this.element().remove();
     };
@@ -72,7 +79,9 @@ $(function () {
             }
         });
 
-        var _html = "<div id='mcfScoreBoardOuter' class='mcfScoreBoardOuter' style='width:" + gameBoard.totalWidth() + "px;' > " +
+        var _html = "<div id='mcfScoreBoardOuter' class='mcfScoreBoardOuter' " +
+            " style='width:" + gameBoard.totalWidth() + "px; " +
+            " font-size: " + scale(150) + "%;' > " +
             "    <div id='" + this.id + "' class='mcfScoreBoard'> " +
             "       <div class='score'>Score:<span id='score'>0</span></div> " +
             "       <div class='best'>Best:<span id='best'>0</span></div> " +
@@ -136,12 +145,12 @@ $(function () {
     function GameOverBox(id) {
         this.id = id || "gameOverBox";
     }
-
     GameOverBox.prototype = new GameObject();
     GameOverBox.prototype.constructor = GameOverBox;
     GameOverBox.prototype.html = function () {
         //noinspection UnnecessaryLocalVariableJS
-        var retval = "<div id='" + this.id + "' class='mcfGameOver'>" +
+        var retval = "<div id='" + this.id + "' class='mcfGameOver' " +
+            "style='height:" + (gameBoard.tileSize * 2) + "px; width:" + (gameBoard.tileSize * 4) + "px;'>" +
             "<div>Game Over!</div>" +
             "<div>Start Over?</div>" +
             "</div>";
@@ -150,7 +159,7 @@ $(function () {
     GameOverBox.prototype.render = function () {
         gameBoard.element().append(this.html());
         var div = this.element();
-        TweenLite.to(div, 0.25, {left: 0});
+        TweenLite.from(div, 0.25, {x: (gameBoard.tileSize * 4)});
     };
 
 
@@ -222,7 +231,6 @@ $(function () {
             return retval;
         };
     }
-
     GameSpace.prototype = new GameObject();
     GameSpace.prototype.constructor = GameSpace;
     GameSpace.prototype.value = function () {
@@ -280,8 +288,6 @@ $(function () {
                 "></div>";
         };
 
-
-
         this.totalWidth = function () {
             return this.tileSize * this.boardSize / 10 * 2 + this.tileSize * this.boardSize;
         };
@@ -311,6 +317,23 @@ $(function () {
                 return _boardSize * _boardSize;
             }
         });
+
+        var _gameover = false;
+        Object.defineProperty(this, "gameOver", {
+            get: function() { return _gameover },
+            set: function(val) {
+                if(val === true)
+                {
+                    gameBoard.removeInputEvents();
+                    controls.disableUndo();
+                    new GameOverBox().render();
+                }
+                else
+                {
+                    $(".mcfGameOver").first().remove();
+                }
+            }
+        })
 
 
         this.mulligans = 5;
@@ -381,10 +404,12 @@ $(function () {
             throw error;
         }
         finally {
+            gameBoard.gameOver = false;
             this.addTile();
             this.addTile();
             this.saveBoardState();
             this.attachInputEvents();
+            controls.enableUndo();
         }
     };
     GameBoard.prototype.attachInputEvents = function () {
@@ -396,7 +421,6 @@ $(function () {
         //noinspection JSCheckFunctionSignatures
         gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
         gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:1});
-
         gameBoard.hammer.on("swipeup",gameBoard.onSwipeUp);
         gameBoard.hammer.on("swiperight",gameBoard.onSwipeRight);
         gameBoard.hammer.on("swipedown",gameBoard.onSwipeDown);
@@ -416,6 +440,7 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
+        console.log(event);
         var undoWasPlayed = false;
         var direction = "";
         var goodKey =
@@ -457,6 +482,7 @@ $(function () {
             }
             else {
                 gameBoard.moveTiles(direction);
+
                 if (tileFactory.somethingHasMoved) {
                     tileFactory.commit();
                 }
@@ -469,11 +495,6 @@ $(function () {
         }
     };
     GameBoard.prototype.beginningOfTurn = function () {
-        //console.clear();
-
-        //this.turnIndex += 1;
-        //console.log("Turn: " + gameBoard.turnIndex);
-
         this.timeline = new TimelineLite();
         this.timeline.addLabel("start", 0);
     };
@@ -564,21 +585,20 @@ $(function () {
     };
     GameBoard.prototype.onAnimationComplete = function () {
 
-        this.endOfTurn();
+        gameBoard.endOfTurn();
     };
     GameBoard.prototype.undo = function () {
-
-
-        console.log(gameBoard.pastStates);
-
         if (this.turnIndex < 1) {
             return;
         }
         if (this.mulligans === 0) {
             return;
         }
+        if (this.gameOver === true) {
+            return;
+        }
 
-        this.pastStates = this.pastStates.slice(0, this.turnIndex);
+        //this.pastStates = this.pastStates.slice(0, this.turnIndex);
 
         try {
 
@@ -600,7 +620,7 @@ $(function () {
             var colLength = newBoard.board[0].length;
             for (var r = 0; r < rowLength; r += 1) {
                 for (var c = 0; c < colLength; c += 1) {
-                    var tv = newBoard.board[r][c];
+                    var tv = newBoard.board[r][c];   // tv = 'tile value', ie, there was atile in this space.
                     var space = gameBoard.matrix[r][c];
                     if (tv > 0) {
                         tileFactory.createNewTile(space, tv);
@@ -635,10 +655,12 @@ $(function () {
             this.saveBoardState();
         }
 
-        this.attachInputEvents();
-
         if (outOfMoves) {
             this.youLose();
+        }
+        else
+        {
+            this.attachInputEvents();
         }
     };
     GameBoard.prototype.addTile = function () {
@@ -679,10 +701,6 @@ $(function () {
             pastTurn.score = scoreBoard.points;
             pastTurn.hiScore = scoreBoard.personalBest;
             this.pastStates[this.turnIndex] = pastTurn;
-
-            //gameBoard.logPastStates();
-            console.log("Turn: " + gameBoard.turnIndex);
-            console.log(gameBoard.pastStates);
         }
     };
     GameBoard.prototype.hasOptions = function () {
@@ -776,9 +794,18 @@ $(function () {
         return options;
     };
     GameBoard.prototype.youLose = function () {
-        var gob = new GameOverBox();
-        gob.render();
-        this.removeInputEvents();
+        try{
+
+        }
+        catch(error)
+        {
+
+        }
+        finally
+        {
+            gameBoard.gameOver = true;
+        }
+
     };
 
 
@@ -1021,6 +1048,7 @@ $(function () {
     Tile2048.prototype.html = function () {
         var boilerplate = "<div id='" + this.id + "' class='tile' " +
             " style='top:" + this.space.position().top + "; left:" + this.space.position().left + ";" +
+            " font-size:" + scale(150) + "%; " +
             " color:" + this.color + "; " +
             " background-color:" + this.bgColor + ";" +
             " height:" + this.space.width + "px;" +
@@ -1059,8 +1087,12 @@ $(function () {
     };
     Tile2048.prototype.fadeIn = function () {
         this.timeline.from(this.element(), this.factory.animateDuration, {
-            autoAlpha: 0
+            autoAlpha: 0,
+            onComplete: function() { this.timeline = new TimelineLite(); },
+            callbackScope: this
         });
+        gameBoard.timeline.add(this.timeline,"0.25");
+
 
     };
     Tile2048.prototype.die = function () {
@@ -1095,7 +1127,8 @@ $(function () {
         },
         render: function () {
             $("body").append(this.html());
-            $("#btnUndo").click(controls.undo);
+            //$("#btnUndo").click(controls.undo);
+            //this.enableUndo();
             $("#btnRestart").click(controls.restart);
         },
         undo: function (eventArgs) {
@@ -1109,6 +1142,12 @@ $(function () {
         restart: function () {
             //console.log("restarting...");
             gameBoard.startGame();
+        },
+        disableUndo: function () {
+            $("#btnUndo" ).off("click");
+        },
+        enableUndo: function() {
+            $("#btnUndo" ).on("click",controls.undo);
         }
     };
 
@@ -1123,5 +1162,4 @@ $(function () {
     gameBoard.render();
     controls.render();
     gameBoard.startGame();
-    //gameBoard.logPastStates();
 });
