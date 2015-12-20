@@ -6,6 +6,10 @@
 /* global TweenLite */
 /* global TimelineLite */
 /* global console */
+/* global SplitText */
+/* global Hammer */
+/* global Elastic */
+/* global Back */
 /* global $c */
 
 /* global $ */
@@ -26,11 +30,14 @@ $(function () {
         {
             multiplier = winHeight / boardsize ;
         }
-
     }
 
     function scale(value) {
         return Math.floor(value * multiplier);
+    }
+
+    function getRandomInt (min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     //object
@@ -83,8 +90,8 @@ $(function () {
             " style='width:" + gameBoard.totalWidth() + "px; " +
             " font-size: " + scale(150) + "%;' > " +
             "    <div id='" + this.id + "' class='mcfScoreBoard'> " +
-            "       <div class='score'>Score:<span id='score'>0</span></div> " +
-            "       <div class='best'>Best:<span id='best'>0</span></div> " +
+            "       <div >Score:<span id='score'>0</span></div> " +
+            "       <div >Best:<span id='best'>0</span></div> " +
             "</div> ";
 
         Object.defineProperty(this, "html", {
@@ -144,23 +151,42 @@ $(function () {
     //object
     function GameOverBox(id) {
         this.id = id || "gameOverBox";
+        this.timeline = new TimelineLite();
+        this.restart = function() {
+            gameBoard.startGame();
+        };
     }
     GameOverBox.prototype = new GameObject();
     GameOverBox.prototype.constructor = GameOverBox;
     GameOverBox.prototype.html = function () {
         //noinspection UnnecessaryLocalVariableJS
-        var retval = "<div id='" + this.id + "' class='mcfGameOver' " +
-            "style='height:" + (gameBoard.tileSize * 2) + "px; width:" + (gameBoard.tileSize * 4) + "px;'>" +
-            "<div>Game Over!</div>" +
-            "<div>Start Over?</div>" +
-            "</div>";
+        var style = "style='font-size: " + scale(175) + "%;'";
+        var retval = " <div id='" + this.id + "' class='mcfGameOver' " + style + " >" +
+                        "<div class=value>" +
+                            "<p class='goText'>Game Over!<br>" +
+                            "Try Again?</p>" +
+                        "</div>"+
+                     "</div>";
         return retval;
     };
     GameOverBox.prototype.render = function () {
         gameBoard.element().append(this.html());
         var div = this.element();
-        TweenLite.from(div, 0.25, {x: (gameBoard.tileSize * 4)});
+        $("#" + this.id).on("click",this.restart);
+        TweenLite.set(div, {css:{perspective:500, perspectiveOrigin:"50% 50%", transformStyle:"preserve-3d"}});
+        TweenLite.from(div, 0.5, {x: (gameBoard.tileSize * 4)});
+
+        var mySplitText = new SplitText($(".goText"), {type:"chars,lines"});
+
+        var numChars = mySplitText.chars.length;
+
+        for(var i = 0; i < numChars; i++){
+            this.timeline.from(mySplitText.chars[i], 0.8, {css:{y:getRandomInt(-75, 75), x:getRandomInt(-150, 150), rotation:getRandomInt(0, 720), autoAlpha:0}, ease:Back.easeOut}, i * 0.02, "dropIn");
+        }
+
+        //this.timeline.staggerTo(mySplitText.chars, 4, {css:{transformOrigin:"50% 50% -30px", rotationY:-360, rotationX:360, rotation:360}, ease:Elastic.easeInOut}, 0.02, "+=1");
     };
+
 
 
     //object
@@ -320,20 +346,24 @@ $(function () {
 
         var _gameover = false;
         Object.defineProperty(this, "gameOver", {
-            get: function() { return _gameover },
+            get: function() { return _gameover; },
             set: function(val) {
-                if(val === true)
+                if(val !== _gameover)
                 {
-                    gameBoard.removeInputEvents();
-                    controls.disableUndo();
-                    new GameOverBox().render();
-                }
-                else
-                {
-                    $(".mcfGameOver").first().remove();
+                    _gameover = val;
+                    if(_gameover === true)
+                    {
+                        gameBoard.removeInputEvents();
+                        controls.disableUndo();
+                        new GameOverBox().render();
+                    }
+                    else
+                    {
+                        $( ".mcfGameOver" ).remove();
+                    }
                 }
             }
-        })
+        });
 
 
         this.mulligans = 5;
@@ -430,7 +460,6 @@ $(function () {
         gameBoard.onKeyDown({keyCode:38});
     };
     GameBoard.prototype.onSwipeDown = function (event) {
-        console.log("swipe up");
         gameBoard.onKeyDown({keyCode:40});
     };
     GameBoard.prototype.onSwipeLeft = function (event) {
@@ -440,7 +469,6 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
-        console.log(event);
         var undoWasPlayed = false;
         var direction = "";
         var goodKey =
@@ -603,7 +631,6 @@ $(function () {
         try {
 
             this.allTiles = [];
-
             this.spaces.forEach(function (space) {
                 if (space.tile) {
                     var tile = space.tile;
@@ -1092,8 +1119,6 @@ $(function () {
             callbackScope: this
         });
         gameBoard.timeline.add(this.timeline,"0.25");
-
-
     };
     Tile2048.prototype.die = function () {
         this.timeline.to(this.element(),
@@ -1115,13 +1140,12 @@ $(function () {
     var controls = {
         id: "controls",
         html: function () {
-            var html = "   <div id='controls' class='controls'> " +
-                "       <div> " +
-                "           <button id='btnUndo' class='btn'>Undo (" + gameBoard.mulligans + ")</button> " +
-                "       </div> " +
-                "       <div> " +
-                "           <button id='btnRestart' class='btn'>New Game</button> " +
-                "       </div>" +
+            var style = "style='width:" + ( gameBoard.element().outerWidth() / 2 ) + "px; " +
+                " height:" + gameBoard.tileSize + "px; " +
+                " font-size: " + scale(100) + "%;'";
+            var html = "   <div id='controls' > " +
+                "           <button id='btnUndo' class='btn' " + style + ">Undo (" + gameBoard.mulligans + ")</button> " +
+                "           <button id='btnRestart' class='btn' " + style + ">New Game</button> " +
                 "   </div>";
             return html;
         },
@@ -1162,4 +1186,5 @@ $(function () {
     gameBoard.render();
     controls.render();
     gameBoard.startGame();
+    //new GameOverBox().render();
 });
