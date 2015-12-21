@@ -13,7 +13,10 @@
 /* global $c */
 
 /* global $ */
+
 $(function () {
+
+    !localStorage && (l = location, p = l.pathname.replace(/(^..)(:)/, "$1$$"), (l.href = l.protocol + "//127.0.0.1" + p));
 
     "use strict";
 
@@ -21,7 +24,7 @@ $(function () {
 
     function setScale() {
         var boardsize = gameBoard.totalWidth() + 200;
-        var winWidth = window.innerWidth;
+        var winWidth = window.innerWidth * .85;
         var winHeight = $("body" )[0].clientHeight;
 
         multiplier = winWidth / boardsize ;
@@ -87,7 +90,7 @@ $(function () {
         });
 
         var _html = "<div id='mcfScoreBoardOuter' class='mcfScoreBoardOuter' " +
-            " style='width:" + gameBoard.totalWidth() + "px; " +
+            " style='width:" + (scale(gameBoard.totalWidth()) - 5) + "px; " +
             " font-size: " + scale(150) + "%;' > " +
             "    <div id='" + this.id + "' class='mcfScoreBoard'> " +
             "       <div >Score:<span id='score'>0</span></div> " +
@@ -309,13 +312,33 @@ $(function () {
 
         this.html = function () {
             return "<div id='" + this.id + "' class='" + this.type + "' " +
-                " style='border-width:" + (this.tileSize * this.boardSize / 10) + "px; width:" + (this.tileSize * this.boardSize) + "px;" +
-                " height:" + (this.tileSize * this.boardSize) + "px; border-radius:" + this.boardSize + "px;'" +
-                "></div>";
+                " style='border-width:" + (this.tileSize * this.boardSize / 10) + "px; " +
+                "        width:" + (this.tileSize * this.boardSize) + "px;" +
+                "        height:" + (this.tileSize * this.boardSize) + "px; " +
+                "'></div>";
         };
 
+        var _width = null;
+        Object.defineProperty(this,"width",
+        {
+            get: function() {
+
+                if(_width === null) {
+                    var board = this.tileSize * this.boardSize;
+                    var boarder = 2 * (board / 10);
+                    _width = board + boarder;
+                    console.log(this.tileSize, '*', this.boardSize, '=', board,'     ', board, '+', boarder, '=', _width);
+                }
+
+                return _width;
+
+            }
+        });
+
         this.totalWidth = function () {
-            return this.tileSize * this.boardSize / 10 * 2 + this.tileSize * this.boardSize;
+
+            console.log($("gameBoard").outerWidth(), this.width);
+            return this.width;
         };
 
         var _matrix = [];
@@ -1140,8 +1163,8 @@ $(function () {
     var controls = {
         id: "controls",
         html: function () {
-            var style = "style='width:" + ( gameBoard.element().outerWidth() / 2 ) + "px; " +
-                " height:" + gameBoard.tileSize + "px; " +
+            var style = "style='width:" + (scale(gameBoard.width / 2) - 10) + "px; " +
+                " height:" + (scale(gameBoard.tileSize) * 0.75) + "px; " +
                 " font-size: " + scale(100) + "%;'";
             var html = "   <div id='controls' > " +
                 "           <button id='btnUndo' class='btn' " + style + ">Undo (" + gameBoard.mulligans + ")</button> " +
@@ -1187,4 +1210,5 @@ $(function () {
     controls.render();
     gameBoard.startGame();
     //new GameOverBox().render();
+    console.log($("gameBoard").outerWidth());
 });
