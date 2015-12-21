@@ -28,7 +28,7 @@
 
 
     <!-- Customize your app and platform with the preference element. -->
-    <preference name="orientation"                value="portrait" />        <!-- all: default means both landscape and portrait are enabled -->
+    <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="webviewbounce"              value="true" />           <!-- ios: control whether the screen 'bounces' when scrolled beyond the top -->
@@ -51,24 +51,24 @@
     <!-- Plugins -->
 
     <!-- Core plugins -->
-    <!-- <gap:plugin name="org.apache.cordova.battery-status" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.camera" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.media-capture" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.console" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.contacts" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.device" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.device-motion" /> -->
+    <gap:plugin name="org.apache.cordova.battery-status" />
+    <gap:plugin name="org.apache.cordova.camera" />
+    <gap:plugin name="org.apache.cordova.media-capture" />
+    <gap:plugin name="org.apache.cordova.console" />
+    <gap:plugin name="org.apache.cordova.contacts" />
+    <gap:plugin name="org.apache.cordova.device" />
+    <gap:plugin name="org.apache.cordova.device-motion" />
     <gap:plugin name="org.apache.cordova.device-orientation" />
-    <!-- <gap:plugin name="org.apache.cordova.dialogs" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.file" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.file-transfer" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.geolocation" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.globalization" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.inappbrowser" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.media" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.network-information" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.splashscreen" /> -->
-    <!-- <gap:plugin name="org.apache.cordova.vibration" /> -->
+    <gap:plugin name="org.apache.cordova.dialogs" />
+    <gap:plugin name="org.apache.cordova.file" />
+    <gap:plugin name="org.apache.cordova.file-transfer" />
+    <gap:plugin name="org.apache.cordova.geolocation" />
+    <gap:plugin name="org.apache.cordova.globalization" />
+    <gap:plugin name="org.apache.cordova.inappbrowser" />
+    <gap:plugin name="org.apache.cordova.media" />
+    <gap:plugin name="org.apache.cordova.network-information" />
+    <gap:plugin name="org.apache.cordova.splashscreen" />
+    <gap:plugin name="org.apache.cordova.vibration" />
 
     <!-- Third party plugins -->
     <!-- A list of available plugins are available at https://build.phonegap.com/plugins -->
@@ -102,7 +102,7 @@
     <gap:splash src="res/screen/android/screen-mdpi-portrait.png"       gap:platform="android" gap:qualifier="port-mdpi" />
     <gap:splash src="res/screen/android/screen-hdpi-portrait.png"       gap:platform="android" gap:qualifier="port-hdpi" />
     <gap:splash src="res/screen/android/screen-xhdpi-portrait.png"      gap:platform="android" gap:qualifier="port-xhdpi" />
-    <!-- <gap:splash src="res/screen/blackberry/screen-225.png"              gap:platform="blackberry" /> -->
+    <gap:splash src="res/screen/blackberry/screen-225.png"              gap:platform="blackberry" />
     <gap:splash src="res/screen/ios/screen-iphone-portrait.png"         gap:platform="ios"     width="320" height="480" />
     <gap:splash src="res/screen/ios/screen-iphone-portrait-2x.png"      gap:platform="ios"     width="640" height="960" />
     <gap:splash src="res/screen/ios/screen-iphone-portrait-568h-2x.png" gap:platform="ios"     width="640" height="1136" />
@@ -139,10 +139,8 @@
         <allow-intent href="market:*" />
     </platform>
 
-    <!-- <platform name="ios">
+    <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
-    </platform> -->
-
-    <platform name="winphone" />
+    </platform>
 </widget>
