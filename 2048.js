@@ -20,16 +20,25 @@ $(function () {
     var multiplier = 1;
 
     function setScale() {
-        var boardsize = gameBoard.totalWidth() + 200;
+        var brdsize = gameBoard.totalWidth();
+        var tsize = gameBoard.tileSize;
+        var sbsize = tsize * 1.27;
+        var hmargin = 16;
+        var vmargin = 20;
+        var vsize = brdsize + sbsize + tsize + vmargin;
+        var hsize = brdsize + hmargin;
         var winWidth = window.innerWidth;
-        var winHeight = $("body" )[0].clientHeight;
-
-        multiplier = winWidth / boardsize ;
-
-        if( ((boardsize * multiplier) + 300) > winHeight )
+        var winHeight = window.innerHeight;
+        var m = 3;
+        while( ((vsize * m) > winHeight) || ((hsize * m) > winWidth) )
         {
-            multiplier = winHeight / boardsize ;
+            console.log(hsize, winWidth);
+            console.log(vsize, winHeight);
+            m -= 0.01;
+
         }
+
+        multiplier = m;
     }
 
     function scale(value) {
@@ -153,6 +162,7 @@ $(function () {
         this.id = id || "gameOverBox";
         this.timeline = new TimelineLite();
         this.restart = function() {
+            gameBoard.gameOver = false;
             gameBoard.startGame();
         };
     }
@@ -307,9 +317,15 @@ $(function () {
             }
         });
 
+        Object.defineProperty(this, "borderSize", {
+            get: function() {
+                return Math.floor((this.tileSize * this.boardSize) /10);
+            }
+        })
+
         this.html = function () {
             return "<div id='" + this.id + "' class='" + this.type + "' " +
-                " style='border-width:" + (this.tileSize * this.boardSize / 10) + "px; width:" + (this.tileSize * this.boardSize) + "px;" +
+                " style='border-width:" + this.borderSize + "px; width:" + (this.tileSize * this.boardSize) + "px;" +
                 " height:" + (this.tileSize * this.boardSize) + "px; border-radius:" + this.boardSize + "px;'" +
                 "></div>";
         };
@@ -434,7 +450,6 @@ $(function () {
             throw error;
         }
         finally {
-            gameBoard.gameOver = false;
             this.addTile();
             this.addTile();
             this.saveBoardState();
@@ -469,6 +484,7 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
+        gameBoard.removeInputEvents();
         var undoWasPlayed = false;
         var direction = "";
         var goodKey =
@@ -481,7 +497,6 @@ $(function () {
         if (goodKey) {
 
             gameBoard.beginningOfTurn();
-            gameBoard.removeInputEvents();
             switch (event.keyCode) {
                 case 38:  //north
                     direction = "north";
@@ -521,13 +536,17 @@ $(function () {
                 gameBoard.timeline.play();
             }
         }
+        else
+        {
+            gameBoard.attachInputEvents();
+        }
     };
     GameBoard.prototype.beginningOfTurn = function () {
         this.timeline = new TimelineLite();
         this.timeline.addLabel("start", 0);
     };
     GameBoard.prototype.removeInputEvents = function () {
-        $("body").unbind("keydown");
+        $("body").off();
         this.hammer.destroy();
     };
     GameBoard.prototype.moveTiles = function (direction) {
@@ -832,7 +851,6 @@ $(function () {
         {
             gameBoard.gameOver = true;
         }
-
     };
 
 
@@ -1186,5 +1204,4 @@ $(function () {
     gameBoard.render();
     controls.render();
     gameBoard.startGame();
-    //new GameOverBox().render();
 });

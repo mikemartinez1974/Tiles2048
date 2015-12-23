@@ -1,5 +1,5 @@
 /*html {
-	height: 100%;
+    height: 100%;
 }*/
 
 body {
@@ -20,19 +20,22 @@ body {
     height: 250px;
     width: 250px;
     border: solid steelblue;
-    margin: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
     /*border-image-slice: 33% 33% 33% 33%;*/
     /*border-image-repeat: round round;*/
     /*border-image-source: url(images/glassOverlay.png);*/
     border-radius: 10px;
-    box-shadow: 10px 10px 10px 3px rgba(0, 0, 0, 0.58);
+    -webkit-box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    -moz-box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
 }
 
 .mcfScoreBoardOuter {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    margin: 10px;
+    /*margin: 10px;*/
     /*background-image: url(images/paper.jpg);*/
     background-color: steelblue;
     padding: 5px;
@@ -64,7 +67,7 @@ body {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    z-index: 1;
+    z-index: -2;
     position: absolute;
     height: 50px;
     width: 50px;
@@ -77,7 +80,7 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     /*font-size: 150%;*/
-    z-index: 1;
+    z-index: -1;
     color: white;
     position: absolute;
     background-image: url(images/glassOverlay.png);
@@ -85,9 +88,7 @@ body {
     background-origin: padding-box;
     border: solid black;
     /*text-align: center;*/
-    /*line-height: .8;*/
-
-    
+    /*line-height: .8;*/  
 }
 
 .value {
@@ -128,7 +129,6 @@ body {
 }
 
 .btn {
-    margin: 5px;
     float: left;
     /*background: #3498db;*/
     background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
@@ -139,9 +139,6 @@ body {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    -webkit-box-shadow: 0 1px 3px #666666;
-    -moz-box-shadow: 0 1px 3px #666666;
-    box-shadow: 0 1px 3px #666666;
     font-family:dosis;
     color: #ffffff;
     padding: 5px 10px 5px 10px;
