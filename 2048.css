@@ -5,9 +5,15 @@
 body {
     background-color: darkorange;
     font-size: 100%;
-    /*height: 100%;*/
+    height: 97%;
     font-family: Dosis;
     /*background-image: url(images/background.png); */
+}
+
+#container {
+    position: relative;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 .GameBoard {
@@ -17,11 +23,13 @@ body {
     overflow: hidden;
     position: relative;
     /*z-index: 0;*/
-    height: 250px;
-    width: 250px;
+    /*height: 250px;
+    width: 250px;*/
     border: solid steelblue;
     margin-top: 5px;
     margin-bottom: 5px;
+    /*margin-left:auto; 
+    margin-right:auto;*/
     /*border-image-slice: 33% 33% 33% 33%;*/
     /*border-image-repeat: round round;*/
     /*border-image-source: url(images/glassOverlay.png);*/
@@ -121,21 +129,24 @@ body {
 }
 
 #controls {
-
-    position: absolute;
-    box-sizing: content-box;
-    display: block;
-    /*margin: 10px;*/
-}
+    /* position: relative; */
+    /*height:200px;*/
+    /* width:100%; */
+    /* box-sizing: content-box; */
+    /* margin-left: auto; */
+    /* margin-right: auto; */
+    /*display: block;*/
+    }
 
 .btn {
     float: left;
     /*background: #3498db;*/
+    /* position: relative; */
     background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
     background-image: -moz-linear-gradient(top, #3498db, #2980b9);
     background-image: -ms-linear-gradient(top, #3498db, #2980b9);
     background-image: -o-linear-gradient(top, #3498db, #2980b9);
-     /*background-image: linear-gradient(top, bottom, #3498db, #2980b9); */
+    /*background-image: linear-gradient(top, bottom, #3498db, #2980b9); */
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;

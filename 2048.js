@@ -32,10 +32,7 @@ $(function () {
         var m = 3;
         while( ((vsize * m) > winHeight) || ((hsize * m) > winWidth) )
         {
-            console.log(hsize, winWidth);
-            console.log(vsize, winHeight);
             m -= 0.01;
-
         }
 
         multiplier = m;
@@ -123,7 +120,7 @@ $(function () {
     ScoreBoard.prototype = new GameObject();
     ScoreBoard.prototype.constructor = ScoreBoard;
     ScoreBoard.prototype.render = function () {
-        $("body").append(this.html);
+        $("#container").append(this.html);
         TweenLite.to(this, 0.25, {
             _displayScore: this.points,
             _displayBest: this.personalBest,
@@ -397,7 +394,7 @@ $(function () {
     GameBoard.prototype = new GameObject();
     GameBoard.prototype.constructor = GameBoard;
     GameBoard.prototype.render = function () {
-        $("body").append(this.html());
+        $("#container").append(this.html());
         this.spaces.forEach(function (e) {
                 gameBoard.element().append(e.html());
             }
@@ -452,6 +449,7 @@ $(function () {
         finally {
             this.addTile();
             this.addTile();
+            TweenLite.set(".tile",{opacity:1});
             this.saveBoardState();
             this.attachInputEvents();
             controls.enableUndo();
@@ -631,7 +629,6 @@ $(function () {
         }
     };
     GameBoard.prototype.onAnimationComplete = function () {
-
         gameBoard.endOfTurn();
     };
     GameBoard.prototype.undo = function () {
@@ -700,13 +697,15 @@ $(function () {
             this.okToAddTile = false;
             this.saveBoardState();
         }
-
-        if (outOfMoves) {
-            this.youLose();
-        }
         else
         {
-            this.attachInputEvents();
+            if (outOfMoves) {
+            this.youLose();
+            }
+            else
+            {
+                this.attachInputEvents();
+            }
         }
     };
     GameBoard.prototype.addTile = function () {
@@ -879,7 +878,7 @@ $(function () {
 
     //object
     var tileFactory = {
-        animateDuration: 0.25,
+        animateDuration: 0.15,
         nextTileId: 0,
         allTiles: [],
         movesThisTurn: 0,
@@ -1131,12 +1130,12 @@ $(function () {
         this.needsToMove = false;
     };
     Tile2048.prototype.fadeIn = function () {
-        this.timeline.from(this.element(), this.factory.animateDuration, {
-            autoAlpha: 0,
-            onComplete: function() { this.timeline = new TimelineLite(); },
-            callbackScope: this
-        });
-        gameBoard.timeline.add(this.timeline,"0.25");
+        // this.timeline.from(this.element(), this.factory.animateDuration, {
+        //     autoAlpha: 0,
+        //     onComplete: function() { this.timeline = new TimelineLite(); },
+        //     callbackScope: this
+        // });
+        gameBoard.timeline.add(this.timeline,"+0.25");
     };
     Tile2048.prototype.die = function () {
         this.timeline.to(this.element(),
@@ -1161,14 +1160,14 @@ $(function () {
             var style = "style='width:" + ( gameBoard.element().outerWidth() / 2 ) + "px; " +
                 " height:" + gameBoard.tileSize + "px; " +
                 " font-size: " + scale(100) + "%;'";
-            var html = "   <div id='controls' > " +
+            var html = "   <div id='controls' style:'width:" + Math.floor(gameBoard.totalWidth()) + "px;' > " +
                 "           <button id='btnUndo' class='btn' " + style + ">Undo (" + gameBoard.mulligans + ")</button> " +
                 "           <button id='btnRestart' class='btn' " + style + ">New Game</button> " +
                 "   </div>";
             return html;
         },
         render: function () {
-            $("body").append(this.html());
+            $("#container").append(this.html());
             //$("#btnUndo").click(controls.undo);
             //this.enableUndo();
             $("#btnRestart").click(controls.restart);
@@ -1200,6 +1199,7 @@ $(function () {
     setScale();
     gameBoard.setup();
     var scoreBoard = new ScoreBoard("scoreBoard");
+    $("<div id='container' class='container' style='width:" + (gameBoard.totalWidth() + 2)  + "px;'></div>").appendTo("body");
     scoreBoard.render();
     gameBoard.render();
     controls.render();
