@@ -1182,6 +1182,7 @@ $(function () {
         },
         restart: function () {
             //console.log("restarting...");
+            gameBoard.gameOver = false;
             gameBoard.startGame();
         },
         disableUndo: function () {
