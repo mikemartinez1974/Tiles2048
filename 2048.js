@@ -30,8 +30,7 @@ $(function () {
         var winWidth = window.innerWidth;
         var winHeight = window.innerHeight;
         var m = 3;
-        while( ((vsize * m) > winHeight) || ((hsize * m) > winWidth) )
-        {
+        while (((vsize * m) > winHeight) || ((hsize * m) > winWidth)) {
             m -= 0.01;
         }
 
@@ -153,13 +152,12 @@ $(function () {
     };
 
 
-    //TODO: style the game over box.
     //object
     function GameOverBox(id) {
         this.id = id || "gameOverBox";
         this.timeline = new TimelineLite();
         this.restart = function() {
-            gameBoard.gameOver = false;
+            $(".mcfGameOver").remove();
             gameBoard.startGame();
         };
     }
@@ -290,6 +288,20 @@ $(function () {
         this.id = id || "Board1";
         this.timeline = new TimelineLite();
 
+        this.mulligans = 5;
+        this.pastStates = [];
+        this.turnIndex = 0;
+
+        this.thisSpace = null;
+        this.thisTile = null;
+        this.adjacentSpace = null;
+        this.adjacentTile = null;
+        this.okToAddTile = false;
+        this.movesThisTurn = null;
+        this.movesLastTurn = null;
+        this.undoFailSafe = false;
+        this.listeningForUndo = false;
+
         var _tileSize = 0;
         Object.defineProperty(this, "tileSize", {
             configurable: true,
@@ -359,37 +371,110 @@ $(function () {
 
         var _gameover = false;
         Object.defineProperty(this, "gameOver", {
-            get: function() { return _gameover; },
-            set: function(val) {
-                if(val !== _gameover)
-                {
-                    _gameover = val;
-                    if(_gameover === true)
-                    {
-                        gameBoard.removeInputEvents();
-                        controls.disableUndo();
-                        new GameOverBox().render();
-                    }
-                    else
-                    {
-                        $( ".mcfGameOver" ).remove();
+            get: function () {
+                var options = 0;
+                var thisSpace;
+                var thisTile;
+                var adjacentSpace;
+                var adjacentTile;
+                var matrixRows = this.matrix.length;
+                var matrixCols = this.matrix[0].length;
+                if (tileFactory.getActiveTileCount() < 16) {
+                    return false;
+                }
+
+                var r, c;
+                //north
+                for (r = 0; r < matrixRows - 1; r += 1) {
+                    for (c = 0; c < matrixCols; c += 1) {
+                        thisSpace = this.matrix[r][c];
+                        thisTile = thisSpace.tile == null ? false : thisSpace.tile;
+                        adjacentSpace = this.matrix[r + 1][c] == null ? false : this.matrix[r + 1][c];
+                        adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
+                        if (adjacentSpace) {
+                            if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
+                                options += 1;
+                            }
+                            if (thisSpace.hasTile && adjacentSpace.hasTile) {
+                                if (thisTile.value == adjacentTile.value) { // jshint ignore:line
+                                    options += 1;
+                                }
+                            }
+                        }
                     }
                 }
+                //east
+                for (c = matrixCols - 1; c > 0; c -= 1) {
+                    for (r = matrixRows - 1; r >= 0; r -= 1) {
+                        thisSpace = this.matrix[r][c];
+                        thisTile = thisSpace.tile == null ? false : thisSpace.tile;
+                        adjacentSpace = this.matrix[r][c - 1] == null ? false : this.matrix[r][c - 1];
+                        adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
+                        if (adjacentSpace) {
+                            if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
+                                options += 1;
+                            }
+                            if (thisSpace.hasTile && adjacentSpace.hasTile) {
+                                if (thisTile.value == adjacentTile.value) { // jshint ignore:line
+                                    options += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                //south
+                for (r = matrixRows - 1; r > 0; r -= 1) {
+                    for (c = 0; c < matrixCols; c += 1) {
+                        thisSpace = this.matrix[r][c];
+                        thisTile = thisSpace.tile == null ? false : thisSpace.tile;
+                        adjacentSpace = this.matrix[r - 1][c] == null ? false : this.matrix[r - 1][c];
+                        adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
+                        if (adjacentSpace) {
+                            if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
+                                options += 1;
+                            }
+                            if (thisSpace.hasTile && adjacentSpace.hasTile) {
+                                if (thisTile.value == adjacentTile.value) { // jshint ignore:line
+                                    options += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                //west
+                for (c = 0; c < matrixCols - 1; c += 1) {
+                    for (r = matrixRows - 1; r >= 0; r -= 1) {
+                        thisSpace = this.matrix[r][c];
+                        thisTile = thisSpace.tile == null ? false : thisSpace.tile;
+                        adjacentSpace = this.matrix[r][c + 1] == null ? false : this.matrix[r][c + 1];
+                        adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
+                        if (adjacentSpace) {
+                            if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
+                                options += 1;
+                            }
+                            if (thisSpace.hasTile && adjacentSpace.hasTile) {
+                                if (thisTile.value == adjacentTile.value) { // jshint ignore:line
+                                    options += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                return options ? false : true
             }
         });
 
-
-        this.mulligans = 5;
-        this.pastStates = [];
-        this.turnIndex = 0;
-
-        this.thisSpace = null;
-        this.thisTile = null;
-        this.adjacentSpace = null;
-        this.adjacentTile = null;
-        this.okToAddTile = false;
-        this.movesThisTurn = null;
-        //this.options = 0;
+        var _listening = false;
+        Object.defineProperty(this, "listeningForMoves", {
+            get: function () {
+                return _listening;
+            },
+            set: function (value) {
+                if (_listening != value) {
+                    _listening = value;
+                }
+            }
+        })
     }
     GameBoard.prototype = new GameObject();
     GameBoard.prototype.constructor = GameBoard;
@@ -399,6 +484,7 @@ $(function () {
                 gameBoard.element().append(e.html());
             }
         );
+        this.attachInputEvents();
     };
     GameBoard.prototype.setup = function () {
         if (this.matrix.length > 0) {
@@ -441,6 +527,7 @@ $(function () {
             this.mulligans = 5;
             this.pastStates = [];
             controls.updateMulligans();
+            $(".mcfGameOver").remove();
         }
         catch (error) {
             console.trace();
@@ -450,8 +537,10 @@ $(function () {
             this.addTile();
             this.addTile();
             TweenLite.set(".tile",{opacity:1});
-            this.saveBoardState();
-            this.attachInputEvents();
+            //this.saveBoardState();
+            //this.attachInputEvents();
+            gameBoard.listeningForMoves = true;
+            gameBoard.listeningForUndo = true;
             controls.enableUndo();
         }
     };
@@ -482,66 +571,82 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
-        gameBoard.removeInputEvents();
-        var undoWasPlayed = false;
-        var direction = "";
-        var goodKey =
-            event.keyCode === 37 ? true :
-                event.keyCode === 38 ? true :
-                    event.keyCode === 39 ? true :
-                        event.keyCode === 40 ? true :
-                            event.keyCode === "undo" ? true : false;
 
-        if (goodKey) {
+        if (gameBoard.listeningForMoves) {
 
-            gameBoard.beginningOfTurn();
-            switch (event.keyCode) {
-                case 38:  //north
-                    direction = "north";
-                    break;
-                case 37:  //west
-                    direction = "west";
-                    break;
-                case 40:  //south
-                    direction = "south";
-                    break;
-                case 39:  //east
-                    direction = "east";
-                    break;
-                case "undo":
-                    direction = "undo";
-                    undoWasPlayed = true;
-                    break;
-                default:
-                    return;
-            }
+            //gameBoard.removeInputEvents();
+            gameBoard.listeningForMoves = false;
 
-            if (undoWasPlayed) {
-                //undoWasPlayed = false;
-                gameBoard.undo();
-                gameBoard.attachInputEvents();
-            }
-            else {
-                gameBoard.moveTiles(direction);
+            var undoWasPlayed = false;
+            var direction = "";
+            var goodKey =
+                event.keyCode === 37 ? true :
+                    event.keyCode === 38 ? true :
+                        event.keyCode === 39 ? true :
+                            event.keyCode === 40 ? true :
+                                event.keyCode === "undo" ? true : false;
 
-                if (tileFactory.somethingHasMoved) {
-                    tileFactory.commit();
+            if (goodKey) {
+                switch (event.keyCode) {
+                    case 38:  //north
+                        direction = "north";
+                        break;
+                    case 37:  //west
+                        direction = "west";
+                        break;
+                    case 40:  //south
+                        direction = "south";
+                        break;
+                    case 39:  //east
+                        direction = "east";
+                        break;
+                    default:
+                        gameBoard.listeningForMoves = true;
+                        return;
                 }
 
-                gameBoard.timeline.add(tileFactory.timeline, "start");
-                gameBoard.timeline.eventCallback("onComplete", gameBoard.onAnimationComplete, null, gameBoard);
 
-                gameBoard.timeline.play();
+                if (gameBoard.turnIndex === 0) {
+                    this.saveBoardState();
+                }
+                else {
+                    if (this.movesLastTurn > 0) {
+                        this.saveBoardState();
+                    }
+                }
+
+                this.movesLastTurn = 0;
+                this.timeline = new TimelineLite();
+                this.timeline.addLabel("start", 0);
+
+                // Here is where the logic starts...
+                if (gameBoard.gameOver === false) {
+
+                    gameBoard.moveTiles(direction);
+
+                    tileFactory.commit();
+
+                    gameBoard.timeline.add(tileFactory.timeline, "start");
+                    gameBoard.timeline.eventCallback("onComplete", gameBoard.onAnimationComplete, null, gameBoard);
+                    gameBoard.timeline.play();
+
+                    if (tileFactory.movingTiles === 0) {
+                        gameBoard.listeningForMoves = true;
+                    }
+                }
+                else {
+                    this.pastStates = [];
+                    gameBoard.youLose();
+                }
+            }
+            else {
+                // gameBoard.attachInputEvents();
+                gameBoard.listeningForMoves = true;
             }
         }
-        else
-        {
-            gameBoard.attachInputEvents();
+        else {
+            console.info("not listening");
         }
-    };
-    GameBoard.prototype.beginningOfTurn = function () {
-        this.timeline = new TimelineLite();
-        this.timeline.addLabel("start", 0);
     };
     GameBoard.prototype.removeInputEvents = function () {
         $("body").off();
@@ -599,6 +704,9 @@ $(function () {
                     }
                     break;
             }
+            if (this.movesThisTurn > 0) {
+                this.movesLastTurn += 1;
+            }
         }
         while (this.movesThisTurn > 0);
     };
@@ -628,24 +736,27 @@ $(function () {
             }
         }
     };
-    GameBoard.prototype.onAnimationComplete = function () {
-        gameBoard.endOfTurn();
-    };
     GameBoard.prototype.undo = function () {
         if (this.turnIndex < 1) {
+            console.debug("undo exiting... turn index");
             return;
         }
         if (this.mulligans === 0) {
+            console.debug("undo exiting... mulligans");
             return;
         }
-        if (this.gameOver === true) {
+        if (this.gameOver) {
+            console.debug("undo exiting... game over");
+            return;
+        }
+        if (!gameBoard.listeningForUndo) {
+            console.debug("undo exiting... not listening");
             return;
         }
 
-        //this.pastStates = this.pastStates.slice(0, this.turnIndex);
+        console.count("undo");
 
         try {
-
             this.allTiles = [];
             this.spaces.forEach(function (space) {
                 if (space.tile) {
@@ -655,18 +766,15 @@ $(function () {
                 }
             });
 
-            var newBoard = gameBoard.pastStates[gameBoard.turnIndex - 1];
-
-            //console.log(newBoard);
-
+            var newBoard = gameBoard.pastStates.shift();
             var rowLength = newBoard.board.length;
             var colLength = newBoard.board[0].length;
             for (var r = 0; r < rowLength; r += 1) {
                 for (var c = 0; c < colLength; c += 1) {
-                    var tv = newBoard.board[r][c];   // tv = 'tile value', ie, there was atile in this space.
+                    var tileValue = newBoard.board[r][c];
                     var space = gameBoard.matrix[r][c];
-                    if (tv > 0) {
-                        tileFactory.createNewTile(space, tv);
+                    if (tileValue) {
+                        tileFactory.createNewTile(space, tileValue);
                     }
                     else {
                         space.clear();
@@ -682,30 +790,11 @@ $(function () {
             throw error;
         }
         finally {
+
             this.mulligans -= 1;
             controls.updateMulligans();
             this.turnIndex -= 1;
             //console.clear();
-        }
-    };
-    GameBoard.prototype.endOfTurn = function () {
-        var outOfMoves = !this.hasOptions();
-
-        if (this.okToAddTile) {
-            gameBoard.turnIndex += 1;
-            this.addTile();
-            this.okToAddTile = false;
-            this.saveBoardState();
-        }
-        else
-        {
-            if (outOfMoves) {
-            this.youLose();
-            }
-            else
-            {
-                this.attachInputEvents();
-            }
         }
     };
     GameBoard.prototype.addTile = function () {
@@ -745,134 +834,74 @@ $(function () {
             pastTurn.board = newLayer;
             pastTurn.score = scoreBoard.points;
             pastTurn.hiScore = scoreBoard.personalBest;
-            this.pastStates[this.turnIndex] = pastTurn;
-        }
-    };
-    GameBoard.prototype.hasOptions = function () {
-        var options = 0;
-        var thisSpace;
-        var thisTile;
-        var adjacentSpace;
-        var adjacentTile;
-        var matrixRows = this.matrix.length;
-        var matrixCols = this.matrix[0].length;
-        if (tileFactory.getActiveTileCount() < 16) {
-            return 1;
-        }
-        var r, c;
-        //north
-        for (r = 0; r < matrixRows - 1; r += 1) {
-            for (c = 0; c < matrixCols; c += 1) {
-                thisSpace = this.matrix[r][c];
-                thisTile = thisSpace.tile == null ? false : thisSpace.tile;
-                adjacentSpace = this.matrix[r + 1][c] == null ? false : this.matrix[r + 1][c];
-                adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
-                if (adjacentSpace) {
-                    if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
-                        options += 1;
-                    }
-                    if (thisSpace.hasTile && adjacentSpace.hasTile) {
-                        if (thisTile.value == adjacentTile.value) { // jshint ignore:line
-                            options += 1;
-                        }
-                    }
-                }
+            this.pastStates.unshift(pastTurn);
+            while (this.pastStates.length > this.mulligans) {
+                this.pastStates.pop()
             }
+
+            //gameBoard.logPastStates();
         }
-        //east
-        for (c = matrixCols - 1; c > 0; c -= 1) {
-            for (r = matrixRows - 1; r >= 0; r -= 1) {
-                thisSpace = this.matrix[r][c];
-                thisTile = thisSpace.tile == null ? false : thisSpace.tile;
-                adjacentSpace = this.matrix[r][c - 1] == null ? false : this.matrix[r][c - 1];
-                adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
-                if (adjacentSpace) {
-                    if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
-                        options += 1;
-                    }
-                    if (thisSpace.hasTile && adjacentSpace.hasTile) {
-                        if (thisTile.value == adjacentTile.value) { // jshint ignore:line
-                            options += 1;
-                        }
-                    }
-                }
-            }
-        }
-        //south
-        for (r = matrixRows - 1; r > 0; r -= 1) {
-            for (c = 0; c < matrixCols; c += 1) {
-                thisSpace = this.matrix[r][c];
-                thisTile = thisSpace.tile == null ? false : thisSpace.tile;
-                adjacentSpace = this.matrix[r - 1][c] == null ? false : this.matrix[r - 1][c];
-                adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
-                if (adjacentSpace) {
-                    if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
-                        options += 1;
-                    }
-                    if (thisSpace.hasTile && adjacentSpace.hasTile) {
-                        if (thisTile.value == adjacentTile.value) { // jshint ignore:line
-                            options += 1;
-                        }
-                    }
-                }
-            }
-        }
-        //west
-        for (c = 0; c < matrixCols - 1; c += 1) {
-            for (r = matrixRows - 1; r >= 0; r -= 1) {
-                thisSpace = this.matrix[r][c];
-                thisTile = thisSpace.tile == null ? false : thisSpace.tile;
-                adjacentSpace = this.matrix[r][c + 1] == null ? false : this.matrix[r][c + 1];
-                adjacentTile = adjacentSpace.tile == null ? false : adjacentSpace.tile;
-                if (adjacentSpace) {
-                    if (thisSpace.hasNoTile && adjacentSpace.hasTile) {
-                        options += 1;
-                    }
-                    if (thisSpace.hasTile && adjacentSpace.hasTile) {
-                        if (thisTile.value == adjacentTile.value) { // jshint ignore:line
-                            options += 1;
-                        }
-                    }
-                }
-            }
-        }
-        return options;
     };
     GameBoard.prototype.youLose = function () {
-        try{
-
-        }
-        catch(error)
-        {
-
-        }
-        finally
-        {
-            gameBoard.gameOver = true;
-        }
+        new GameOverBox().render();
     };
+    GameBoard.prototype.addTilesIfNecessary = function () {
 
+        if (this.okToAddTile) {
+            gameBoard.turnIndex += 1;
+            this.addTile();
+            this.okToAddTile = false;
+        }
 
-    //GameBoard.prototype.logPastStates = function () {
-    //    console.clear();
-    //    //this.pastStates.reverse();
-    //    this.pastStates.forEach(function (turn, index, array) {
-    //        if (turn !== undefined) {
-    //            var rowOutput = "";
-    //            rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
-    //            rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
-    //            rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
-    //            rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
-    //
-    //            //console.log(turn);
-    //            console.log(rowOutput);
-    //            console.log("score: " + turn.score);
-    //            console.log("index: " + index);
-    //            console.log(array);
-    //        }
-    //    });
-    //    //this.pastStates.reverse();
-    //};
+        gameBoard.listeningForMoves = true;
+
+    }
+    GameBoard.prototype.finishedMovingTiles = function () {
+        //this.lookForRemainingMoves();
+        gameBoard.addTilesIfNecessary();
+        //gameBoard.endOfTurn();
+    }
+    GameBoard.prototype.logPastStates = function () {
+        //this.pastStates.reverse();
+        //this.pastStates.forEach(function (turn, index, array) {
+        //    //turn.board.reverse();
+        //    console.table(turn.board);
+        //    //if (turn !== undefined) {
+        //    //    var rowOutput = "";
+        //    //    rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
+        //    //    rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
+        //    //    rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
+        //    //    rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
+        //    //
+        //    //    //console.log(turn);
+        //    //    console.log(rowOutput);
+        //    //    console.log("score: " + turn.score);
+        //    //    console.log("index: " + index);
+        //    //    console.log(array);
+        //    //}
+        //    //turn.board.reverse();
+        //});
+        ////this.pastStates.reverse();
+        for (var i = 0; i < this.pastStates.length; i++) {
+            console.table(this.pastStates[i].board);
+            console.info(i, this.pastStates.length);
+            var turn = this.pastStates[i];
+            if (turn !== undefined) {
+                var rowOutput = "";
+                rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
+                rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
+                rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
+                rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
+
+                //console.log(turn);
+                console.log(rowOutput);
+                //console.log("score: " + turn.score);
+                //console.log("index: " + index);
+                console.log(this.pastStates);
+            }
+        }
+        console.info("========================");
+    };
 
 
 
@@ -966,6 +995,12 @@ $(function () {
             this.allTiles.forEach(function (thisTile) {
                 thisTile.fixTile();
             });
+        },
+        tickOneOff: function () {
+            if ((tileFactory.movingTiles -= 1) < 1) {
+                //gameBoard.onAnimationComplete();
+                gameBoard.finishedMovingTiles();
+            }
         }
     };
 
@@ -1126,7 +1161,10 @@ $(function () {
         var element = this.element();
         var duration = this.factory.animateDuration;
         var sp = this.space.position();
-        this.timeline.to(element, duration, sp, "start");
+        sp.onComplete = tileFactory.tickOneOff;
+        tileFactory.movingTiles += 1;
+        new TweenLite.to(element, duration, sp);
+        // this.timeline.to(element, duration, sp);
         this.needsToMove = false;
     };
     Tile2048.prototype.fadeIn = function () {
@@ -1168,13 +1206,16 @@ $(function () {
         },
         render: function () {
             $("#container").append(this.html());
-            //$("#btnUndo").click(controls.undo);
+            $("#btnUndo").click(controls.undo);
             //this.enableUndo();
             $("#btnRestart").click(controls.restart);
         },
         undo: function (eventArgs) {
+            console.count("control: undo");
             eventArgs.keyCode = "undo";
-            gameBoard.onKeyDown(eventArgs);
+            console.count("Key Down");
+            //gameBoard.onKeyDown(eventArgs);
+            gameBoard.undo();
         },
         updateMulligans: function () {
 
@@ -1182,14 +1223,16 @@ $(function () {
         },
         restart: function () {
             //console.log("restarting...");
-            gameBoard.gameOver = false;
+            //gameBoard.gameOver = false;
             gameBoard.startGame();
         },
         disableUndo: function () {
-            $("#btnUndo" ).off("click");
+            gameBoard.listeningForUndo = false;
+            //$("#btnUndo" ).off("click");
         },
         enableUndo: function() {
-            $("#btnUndo" ).on("click",controls.undo);
+            gameBoard.listeningForUndo = true;
+            //$("#btnUndo" ).on("click",controls.undo);
         }
     };
 
