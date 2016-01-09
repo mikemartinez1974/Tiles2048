@@ -175,6 +175,7 @@ $(function () {
         return retval;
     };
     GameOverBox.prototype.render = function () {
+        controls.disableUndo();
         gameBoard.element().append(this.html());
         var div = this.element();
         $("#" + this.id).on("click",this.restart);
@@ -184,7 +185,7 @@ $(function () {
         var mySplitText = new SplitText($(".goText"), {type:"chars,lines"});
 
         var numChars = mySplitText.chars.length;
-
+        gameOverSound.play();
         for(var i = 0; i < numChars; i++){
             this.timeline.from(mySplitText.chars[i], 0.8, {css:{y:getRandomInt(-75, 75), x:getRandomInt(-150, 150), rotation:getRandomInt(0, 720), autoAlpha:0}, ease:Back.easeOut}, i * 0.02, "dropIn");
         }
@@ -301,6 +302,7 @@ $(function () {
         this.movesLastTurn = null;
         this.undoFailSafe = false;
         this.listeningForUndo = false;
+        this.won = false;
 
         var _tileSize = 0;
         Object.defineProperty(this, "tileSize", {
@@ -518,6 +520,7 @@ $(function () {
     GameBoard.prototype.startGame = function () {
 
         try {
+            this.won == false;
             this.spaces.forEach(function (space) {
                 space.clear();
             });
@@ -530,7 +533,6 @@ $(function () {
             $(".mcfGameOver").remove();
         }
         catch (error) {
-            console.trace();
             throw error;
         }
         finally {
@@ -540,7 +542,6 @@ $(function () {
             //this.saveBoardState();
             //this.attachInputEvents();
             gameBoard.listeningForMoves = true;
-            gameBoard.listeningForUndo = true;
             controls.enableUndo();
         }
     };
@@ -552,7 +553,7 @@ $(function () {
 
         //noinspection JSCheckFunctionSignatures
         gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
-        gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:1});
+        gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:.5});
         gameBoard.hammer.on("swipeup",gameBoard.onSwipeUp);
         gameBoard.hammer.on("swiperight",gameBoard.onSwipeRight);
         gameBoard.hammer.on("swipedown",gameBoard.onSwipeDown);
@@ -571,10 +572,16 @@ $(function () {
         gameBoard.onKeyDown({keyCode:39});
     };
     GameBoard.prototype.onKeyDown = function (event) {
+        try {
+            event.preventDefault();
+        }
+        catch(er){}
 
         if (gameBoard.listeningForMoves) {
 
-            //gameBoard.removeInputEvents();
+            noSlideIsPlaying = true;
+            noMatchIsPlaying = true;
+
             gameBoard.listeningForMoves = false;
 
             var undoWasPlayed = false;
@@ -644,9 +651,6 @@ $(function () {
                 gameBoard.listeningForMoves = true;
             }
         }
-        else {
-            console.info("not listening");
-        }
     };
     GameBoard.prototype.removeInputEvents = function () {
         $("body").off();
@@ -715,6 +719,7 @@ $(function () {
         var adjacentTile = this.adjacentTile;
         var thisTile = this.thisTile;
         var thisSpace = this.thisSpace;
+        var ordinal = getRandomInt(1,4);
         if (adjacentSpace) {
             if (adjacentTile) {
                 if (thisTile) {
@@ -724,6 +729,23 @@ $(function () {
                             adjacentTile.space = thisSpace;
                             this.okToAddTile = true;
                             this.movesThisTurn += 1;
+                            if(noSlideIsPlaying) {
+                                switch(ordinal) {
+                                    case 1:
+                                        slide1Sound.play();
+                                        break;
+                                    case 2:
+                                        slide2Sound.play();
+                                        break;
+                                    case 3:
+                                        slide3Sound.play();
+                                        break;
+                                    case 4:
+                                        slide4Sound.play();
+                                        break;
+                                }
+                            }
+                            noSlideIsPlaying = false;
                         }
                     }
                 }
@@ -732,29 +754,33 @@ $(function () {
                     adjacentTile.space = thisSpace;
                     this.okToAddTile = true;
                     this.movesThisTurn += 1;
+                    if(noSlideIsPlaying) {
+
+                        switch(ordinal) {
+                            case 1:
+                                slide1Sound.play();
+                                break;
+                            case 2:
+                                slide2Sound.play();
+                                break;
+                            case 3:
+                                slide3Sound.play();
+                                break;
+                            case 4:
+                                slide4Sound.play();
+                                break;
+                        }
+                    }
+                    noSlideIsPlaying = false;
                 }
             }
         }
     };
     GameBoard.prototype.undo = function () {
-        if (this.turnIndex < 1) {
-            console.debug("undo exiting... turn index");
-            return;
-        }
-        if (this.mulligans === 0) {
-            console.debug("undo exiting... mulligans");
-            return;
-        }
-        if (this.gameOver) {
-            console.debug("undo exiting... game over");
-            return;
-        }
-        if (!gameBoard.listeningForUndo) {
-            console.debug("undo exiting... not listening");
-            return;
-        }
 
-        console.count("undo");
+        if (this.turnIndex < 1) { return; }
+        if (this.mulligans === 0) { return; }
+        if (this.listeningForUndo === false ) { return; }
 
         try {
             this.allTiles = [];
@@ -786,7 +812,6 @@ $(function () {
             scoreBoard.personalBest = newBoard.hiScore;
         }
         catch (error) {
-            console.trace();
             throw error;
         }
         finally {
@@ -794,7 +819,6 @@ $(function () {
             this.mulligans -= 1;
             controls.updateMulligans();
             this.turnIndex -= 1;
-            //console.clear();
         }
     };
     GameBoard.prototype.addTile = function () {
@@ -862,26 +886,7 @@ $(function () {
         //gameBoard.endOfTurn();
     }
     GameBoard.prototype.logPastStates = function () {
-        //this.pastStates.reverse();
-        //this.pastStates.forEach(function (turn, index, array) {
-        //    //turn.board.reverse();
-        //    console.table(turn.board);
-        //    //if (turn !== undefined) {
-        //    //    var rowOutput = "";
-        //    //    rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
-        //    //    rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
-        //    //    rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
-        //    //    rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
-        //    //
-        //    //    //console.log(turn);
-        //    //    console.log(rowOutput);
-        //    //    console.log("score: " + turn.score);
-        //    //    console.log("index: " + index);
-        //    //    console.log(array);
-        //    //}
-        //    //turn.board.reverse();
-        //});
-        ////this.pastStates.reverse();
+
         for (var i = 0; i < this.pastStates.length; i++) {
             console.table(this.pastStates[i].board);
             console.info(i, this.pastStates.length);
@@ -893,14 +898,8 @@ $(function () {
                 rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
                 rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
 
-                //console.log(turn);
-                console.log(rowOutput);
-                //console.log("score: " + turn.score);
-                //console.log("index: " + index);
-                console.log(this.pastStates);
             }
         }
-        console.info("========================");
     };
 
 
@@ -1115,6 +1114,20 @@ $(function () {
             this.factory.animateDuration,
             {
                 displayValue: this.value,
+                onComplete: function() {
+                    if(gameBoard.won == false) {
+                        gameBoard.won == true;
+                        applauseSound.play();
+                    }
+                    if ((noMatchIsPlaying))
+                        if (this.size > 10) {
+                            bigMatchSound.play();
+                        }
+                        else {
+                            smallMatchSound.play();
+                        }
+                    noMatchIsPlaying = false;
+                    },
                 onUpdate: this.updateTile,
                 callbackScope: this
             },
@@ -1191,6 +1204,16 @@ $(function () {
         tiles.splice(tiles.indexOf(this), 1);
     };
 
+    var noSlideIsPlaying = true;
+    var noMatchIsPlaying = true;
+    var slide1Sound = document.getElementById("slide1");
+    var slide2Sound = document.getElementById("slide2");
+    var slide3Sound = document.getElementById("slide3");
+    var slide4Sound = document.getElementById("slide4");
+    var smallMatchSound = document.getElementById("smallMatch");
+    var bigMatchSound = document.getElementById("bigMatch");
+    var gameOverSound = document.getElementById("gameOver");
+    var applauseSound = document.getElementById("applause");
 
     var controls = {
         id: "controls",
@@ -1207,14 +1230,10 @@ $(function () {
         render: function () {
             $("#container").append(this.html());
             $("#btnUndo").click(controls.undo);
-            //this.enableUndo();
+            this.enableUndo();
             $("#btnRestart").click(controls.restart);
         },
         undo: function (eventArgs) {
-            console.count("control: undo");
-            eventArgs.keyCode = "undo";
-            console.count("Key Down");
-            //gameBoard.onKeyDown(eventArgs);
             gameBoard.undo();
         },
         updateMulligans: function () {
@@ -1222,17 +1241,13 @@ $(function () {
             $("#btnUndo").text("Undo (" + parseInt(gameBoard.mulligans, 10) + ")");
         },
         restart: function () {
-            //console.log("restarting...");
-            //gameBoard.gameOver = false;
             gameBoard.startGame();
         },
         disableUndo: function () {
             gameBoard.listeningForUndo = false;
-            //$("#btnUndo" ).off("click");
         },
         enableUndo: function() {
             gameBoard.listeningForUndo = true;
-            //$("#btnUndo" ).on("click",controls.undo);
         }
     };
 

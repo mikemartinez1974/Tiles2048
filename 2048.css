@@ -6,10 +6,13 @@ body {
     background-color: darkorange;
     font-size: 100%;
     height: 97%;
-    font-family: Dosis;
+    font-family: Dosis, Verdana, sans-serif;
     /*background-image: url(images/background.png); */
 }
 
+audio {
+    display:none;
+}
 #container {
     position: relative;
     margin-left:auto;
@@ -113,7 +116,6 @@ body {
     box-sizing: border-box;
     height: 50%;
     width: 100%;
-    top: 50%;
     position: relative;
     z-index: 3;
     /*transform-translate(- 50 %, - 50 %);*/
@@ -150,7 +152,7 @@ body {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    font-family:dosis;
+    font-family: Dosis, Verdana, sans-serif;
     color: #ffffff;
     padding: 5px 10px 5px 10px;
     border: solid #1f628d 2px;
