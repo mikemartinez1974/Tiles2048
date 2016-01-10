@@ -14,31 +14,41 @@
 </head>
 <body>
 
-<audio controls id="slide1" preload="auto">
-    <source src="/soundeffects/slide1.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-</audio>
-<audio controls id="slide2" preload="auto">
-    <source src="/soundeffects/slide2.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="slide3" preload="auto">
-    <source src="/soundeffects/slide3.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="slide4" preload="auto">
-    <source src="/soundeffects/slide4.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="smallMatch" preload="auto">
-    <source src="/soundeffects/smallMatch.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="bigMatch" preload="auto">
-    <source src="/soundeffects/bigMatch.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="applause" preload="auto">
-    <source src="/soundeffects/applause.mp3" type="audio/mpeg">
-</audio>
-<audio controls id="gameOver" preload="auto">
-    <source src="/soundeffects/gameOver.mp3" type="audio/mpeg">
-</audio>
+    <audio controls id="slide1" preload="auto">
+        <source src="/soundeffects/slide1.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="slide2" preload="auto">
+        <source src="/soundeffects/slide2.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="slide3" preload="auto">
+        <source src="/soundeffects/slide3.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="slide4" preload="auto">
+        <source src="/soundeffects/slide4.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="smallMatch" preload="auto">
+        <source src="/soundeffects/smallMatch.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="bigMatch" preload="auto">
+        <source src="/soundeffects/bigMatch.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="applause" preload="auto">
+        <source src="/soundeffects/applause.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls id="gameOver" preload="auto">
+        <source src="/soundeffects/gameOver.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="curtainA" class="curtain"></div>
+    <div id="title">
+        <p class="big">2 0 4 8</p>
+        <p class="small">by Mike Martinez</p>
+    </div>
+    <div id="curtainB" class="curtain"></div>
+    <div id="instructions">
+        <p class="instructions">Use arrow keys or swipe board to move tiles up, down, left, or right.</p>
+        <p class="instructions">Tiles of equal value will merge and double when they collide. Try to get one to 2048!</p>
+    </div>
 
     <!-- jquery -->
     <script src="scripts/jquery.js"></script>
@@ -60,6 +70,7 @@
 
     <!-- My app -->
     <script src="2048.js"></script>
+
 
 </body>
 </html>

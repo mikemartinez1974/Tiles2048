@@ -1115,9 +1115,11 @@ $(function () {
             {
                 displayValue: this.value,
                 onComplete: function() {
-                    if(gameBoard.won == false) {
-                        gameBoard.won == true;
-                        applauseSound.play();
+                    if(this.value >= 2048) {
+                        if (gameBoard.won == false) {
+                            gameBoard.won == true;
+                            applauseSound.play();
+                        }
                     }
                     if ((noMatchIsPlaying))
                         if (this.size > 10) {
@@ -1263,4 +1265,14 @@ $(function () {
     gameBoard.render();
     controls.render();
     gameBoard.startGame();
+    window.setTimeout(function () {
+        var winWidth = window.innerWidth;
+        var slideLeft = -5 - (winWidth);
+        var slideRight = winWidth + 5;
+        console.log(slideLeft, slideRight);
+        TweenLite.to("#curtainA",.5,{x:slideLeft});
+        TweenLite.to("#title",.5,{x:slideLeft});
+        TweenLite.to("#curtainB",.5,{x:slideRight});
+        TweenLite.to("#instructions",.5,{x:slideRight});
+    }, 4000)
 });

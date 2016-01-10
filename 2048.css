@@ -9,14 +9,8 @@ body {
     font-family: Dosis, Verdana, sans-serif;
     /*background-image: url(images/background.png); */
 }
-
 audio {
     display:none;
-}
-#container {
-    position: relative;
-    margin-left:auto;
-    margin-right:auto;
 }
 
 .GameBoard {
@@ -41,7 +35,6 @@ audio {
     -moz-box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
     box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
 }
-
 .mcfScoreBoardOuter {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -52,15 +45,12 @@ audio {
     padding: 5px;
     border-radius: 5px;
 }
-
 .mcfScore {
     margin: 2px;
 }
-
 .mcfBest {
     margin: 2px;
 }
-
 .mcfScoreBoard {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -73,7 +63,6 @@ audio {
     border: 5px midnightblue solid;
     background-color: steelblue;
 }
-
 .GameSpace {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -85,7 +74,6 @@ audio {
     border: 5px solid lightblue;
     background-color: powderblue;
 }
-
 .tile {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -101,7 +89,6 @@ audio {
     /*text-align: center;*/
     /*line-height: .8;*/  
 }
-
 .value {
     position: absolute;
     margin: 0;
@@ -109,7 +96,6 @@ audio {
     left: 50%;
     transform: translateX(-50%) translateY(-50%);
 }
-
 .mcfGameOver {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -123,23 +109,6 @@ audio {
     color: white;
     background-color: black;
 }
-
-#toggle {
-    width: 100px;
-    height: 100px;
-    background: #ccc;
-}
-
-#controls {
-    /* position: relative; */
-    /*height:200px;*/
-    /* width:100%; */
-    /* box-sizing: content-box; */
-    /* margin-left: auto; */
-    /* margin-right: auto; */
-    /*display: block;*/
-    }
-
 .btn {
     float: left;
     /*background: #3498db;*/
@@ -152,8 +121,82 @@ audio {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    font-family: Dosis, Verdana, sans-serif;
+    /*font-family: Dosis, Verdana, sans-serif;*/
     color: #ffffff;
     padding: 5px 10px 5px 10px;
     border: solid #1f628d 2px;
+}
+.curtain {
+    position:absolute;
+    top:0;
+    height:100%;
+    background-color: #2980b9;
+    /*overflow: visible;*/
+    /*border: solid red 3px;*/
+    z-index: 2;
+}
+
+#container {
+    position: relative;
+    margin-left:auto;
+    margin-right:auto;
+}
+#toggle {
+    width: 100px;
+    height: 100px;
+    background: #ccc;
+}
+#controls {
+    /* position: relative; */
+    /*height:200px;*/
+    /* width:100%; */
+    /* box-sizing: content-box; */
+    /* margin-left: auto; */
+    /* margin-right: auto; */
+    /*display: block;*/
+    }
+#curtainA {
+    left: 0;
+    width: 50%;
+}
+#curtainB{
+    left: 50%;
+    width: 50%;
+}
+#title {
+    position:absolute;
+    top: 25%;
+    left: 25%;
+    width: 50%;
+    border: solid white 5px;
+    border-radius: 5px;
+    z-index: 3;
+    background-color: #1f628d;
+}
+#instructions {
+    position: absolute;
+    top: 50%;
+    left: 25%;
+    width: 50%;
+    border: solid white 5px;
+    border-radius: 5px;
+    z-index: 3;
+    background-color: #1f628d;
+}
+
+.big {
+    font-size: 300%;
+    margin: 15px;
+    color: darkorange;
+}
+
+.small {
+    margin: 10px;
+    margin-left:15px;
+    text-align: right;
+}
+
+.instructions {
+    color: white;
+    margin: 10px;
 }
