@@ -15,6 +15,23 @@
 /* global $ */
 $(function () {
 
+    "use str/**
+ * Created by Mike on 12/12/2015.
+ */
+//2048 tiles
+
+/* global TweenLite */
+/* global TimelineLite */
+/* global console */
+/* global SplitText */
+/* global Hammer */
+/* global Elastic */
+/* global Back */
+/* global $c */
+
+/* global $ */
+$(function () {
+
     "use strict";
 
     var multiplier = 1;
@@ -551,6 +568,7 @@ $(function () {
             gameBoard.onKeyDown(event);
         });
 
+        /*
         //noinspection JSCheckFunctionSignatures
         gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
         gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:.5});
@@ -558,6 +576,14 @@ $(function () {
         gameBoard.hammer.on("swiperight",gameBoard.onSwipeRight);
         gameBoard.hammer.on("swipedown",gameBoard.onSwipeDown);
         gameBoard.hammer.on("swipeleft",gameBoard.onSwipeLeft);
+        */
+        
+        gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
+        gameBoard.hammer.get("pan").set({direction:Hammer.DIRECTION_ALL, threshold:20});
+        gameBoard.hammer.on("panup",gameBoard.onSwipeUp);
+        gameBoard.hammer.on("panright",gameBoard.onSwipeRight);
+        gameBoard.hammer.on("pandown",gameBoard.onSwipeDown);
+        gameBoard.hammer.on("panleft",gameBoard.onSwipeLeft);
     };
     GameBoard.prototype.onSwipeUp = function (event) {
         gameBoard.onKeyDown({keyCode:38});
@@ -1265,14 +1291,16 @@ $(function () {
     gameBoard.render();
     controls.render();
     gameBoard.startGame();
+    /*
     window.setTimeout(function () {
         var winWidth = window.innerWidth;
         var slideLeft = -5 - (winWidth);
         var slideRight = winWidth + 5;
-        console.log(slideLeft, slideRight);
+        //console.log(slideLeft, slideRight);
         TweenLite.to("#curtainA",.5,{x:slideLeft});
         TweenLite.to("#title",.5,{x:slideLeft});
         TweenLite.to("#curtainB",.5,{x:slideRight});
         TweenLite.to("#instructions",.5,{x:slideRight});
     }, 4000)
+    */
 });
