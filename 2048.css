@@ -31,9 +31,11 @@ audio {
     /*border-image-repeat: round round;*/
     /*border-image-source: url(images/glassOverlay.png);*/
     border-radius: 10px;
-    -webkit-box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
-    -moz-box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
-    box-shadow: inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    
+    -webkit-box-shadow: 5px 5px 10px rgba(0,0,0,0.58), inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    -moz-box-shadow: 5px 5px 10px rgba(0,0,0,0.58), inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.58), inset 10px 10px 10px 10px rgba(0, 0, 0, 0.58);
+    
 }
 .mcfScoreBoardOuter {
     -webkit-box-sizing: border-box;
@@ -87,7 +89,10 @@ audio {
     background-origin: padding-box;
     border: solid black;
     /*text-align: center;*/
-    /*line-height: .8;*/  
+    /*line-height: .8;*/
+    -webkit-box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.58);
+    -moz-box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.58);
+    box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.58);
 }
 .value {
     position: absolute;
