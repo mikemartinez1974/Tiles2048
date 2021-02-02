@@ -15,23 +15,6 @@
 /* global $ */
 $(function () {
 
-    "use str/**
- * Created by Mike on 12/12/2015.
- */
-//2048 tiles
-
-/* global TweenLite */
-/* global TimelineLite */
-/* global console */
-/* global SplitText */
-/* global Hammer */
-/* global Elastic */
-/* global Back */
-/* global $c */
-
-/* global $ */
-$(function () {
-
     "use strict";
 
     var multiplier = 1;
