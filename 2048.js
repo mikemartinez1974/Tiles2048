@@ -1,18 +1,19 @@
+
 /**
  * Created by Mike on 12/12/2015.
  */
-//2048 tiles
 
-/* global TweenLite */
-/* global TimelineLite */
-/* global console */
-/* global SplitText */
-/* global Hammer */
-/* global Elastic */
-/* global Back */
-/* global $c */
+    //2048 tiles
+    /* global TweenLite */
+    /* global TimelineLite */
+    /* global console */
+    /* global SplitText */
+    /* global Hammer */
+    /* global Elastic */
+    /* global Back */
+    /* global $c */
 
-/* global $ */
+    /* global $ */
 $(function () {
 
     "use strict";
@@ -41,7 +42,7 @@ $(function () {
         return Math.floor(value * multiplier);
     }
 
-    function getRandomInt (min, max) {
+    function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
@@ -60,9 +61,9 @@ $(function () {
     GameObject.prototype.position = function () {
         var e = this.element();
         var p = e.position();
-        var rt = (p === undefined ? 0 : p.top ) + "px";
+        var rt = (p === undefined ? 0 : p.top) + "px";
         var rl = (p === undefined ? 0 : p.left) + "px";
-        return {top: rt, left: rl};
+        return { top: rt, left: rl };
     };
 
     //object
@@ -91,13 +92,13 @@ $(function () {
             }
         });
 
-        var _html = "<div id='mcfScoreBoardOuter' class='mcfScoreBoardOuter' " +
-            " style='width:" + gameBoard.totalWidth() + "px; " +
-            " font-size: " + scale(150) + "%;' > " +
-            "    <div id='" + this.id + "' class='mcfScoreBoard'> " +
-            "       <div >Score:<span id='score'>0</span></div> " +
-            "       <div >Best:<span id='best'>0</span></div> " +
-            "</div> ";
+        var _html = "" +
+            "   <div id='mcfScoreBoardOuter' class='mcfScoreBoardOuter' style='width:" + gameBoard.totalWidth() + "px; height:175px; font-size: " + scale(125) + "%;' > " +
+            "       <div id='" + this.id + "' class='mcfScoreBoard' style='margin:5px;float:left; width:" + gameBoard.totalWidth() / 2 + "px;'> " +
+            "           <div style='height:50%;'>Score:<div id='score' style='float:right; text-align:right'>0</div></div> " +
+            "           <div style='height:50%;'>Best:</small><div id='best' style='float:right; text-align:right'>0</div></div> " +
+            "       </div> " +
+            "   </div> ";
 
         Object.defineProperty(this, "html", {
             get: function () {
@@ -151,48 +152,138 @@ $(function () {
         });
     };
 
+    var controls = {
+        id: "controls",
+        html: function () {
+
+            var html = "" +
+                "       <div id='controls' style='float:left; top: 10px; left:300px; width:210px;' > " +
+                "           <button id='btnHome' class='btn' onclick='showTitle()'> " +
+                "               <div id='btnHomeImage' style = 'float:left;height:40px;width:40px;'></div > " +
+                "               <div id='btnHomeLabel' style = 'float:left;height:40px;width:160px;text-indent:20px;'>Home </div > " +
+                "           </button >" +
+                "           <button id='btnRestart' class='btn'> " +
+                "               <div id='btnRestartImage' style = 'float:left;height:40px;width:40px;'></div > " +
+                "               <div id='btnRestartLabel' style = 'float:left;height:40px;width:160px;text-indent:20px;'>Restart </div > " +
+                "           </button >" +
+                "           <button id='btnUndo' class='btn'> " +
+                "               <div id='btnUndoImage' style = 'float:left;height:40px;width:40px;'></div > " +
+                "               <div id='btnUndoLabel' style = 'float:left;height:40px;width:160px;text-indent:20px;'>Undo (" + gameBoard.mulligans + ")</div > " +
+                "           </button >" +
+                "       </div>";
+
+            return html;
+        },
+        render: function () {
+            $("#mcfScoreBoardOuter").append(this.html());
+            $("#btnUndo").click(controls.undo);
+            this.enableUndo();
+            $("#btnRestart").click(controls.restart);
+        },
+        undo: function (eventArgs) {
+            gameBoard.undo();
+        },
+        updateMulligans: function () {
+
+            $("#btnUndoLabel").text("Undo (" + parseInt(gameBoard.mulligans, 10) + ")");
+        },
+        restart: function () {
+            gameBoard.startGame();
+        },
+        disableUndo: function () {
+            gameBoard.listeningForUndo = false;
+        },
+        enableUndo: function () {
+            gameBoard.listeningForUndo = true;
+        }
+    };
+
 
     //object
     function GameOverBox(id) {
         this.id = id || "gameOverBox";
         this.timeline = new TimelineLite();
-        this.restart = function() {
-            $(".mcfGameOver").remove();
+        this.restart = function () {
+            $("#" + this.id).remove();
             gameBoard.startGame();
         };
     }
     GameOverBox.prototype = new GameObject();
     GameOverBox.prototype.constructor = GameOverBox;
     GameOverBox.prototype.html = function () {
-        //noinspection UnnecessaryLocalVariableJS
-        var style = "style='font-size: " + scale(175) + "%;'";
+        var style = "style='font-size: " + scale(155) + "%;'";
         var retval = " <div id='" + this.id + "' class='mcfGameOver' " + style + " >" +
-                        "<div class=value>" +
-                            "<p class='goText'>Game Over!<br>" +
-                            "Try Again?</p>" +
-                        "</div>"+
-                     "</div>";
+            "<div class=gameOverValue>" +
+            "<p class='goText'>Game Over!</br>" +
+            "&nbsp;Try Again?</p>" +
+            "</div>" +
+            "</div>";
         return retval;
     };
     GameOverBox.prototype.render = function () {
         controls.disableUndo();
         gameBoard.element().append(this.html());
         var div = this.element();
-        $("#" + this.id).on("click",this.restart);
-        TweenLite.set(div, {css:{perspective:500, perspectiveOrigin:"50% 50%", transformStyle:"preserve-3d"}});
-        TweenLite.from(div, 0.5, {x: (gameBoard.tileSize * 4)});
+        $("#" + this.id).on("click", this.restart);
+        TweenLite.set(div, { css: { perspective: 500, perspectiveOrigin: "50% 50%", transformStyle: "preserve-3d" } });
+        TweenLite.from(div, 0.75, { x: (gameBoard.tileSize * 4) });
 
-        var mySplitText = new SplitText($(".goText"), {type:"chars,lines"});
+        var mySplitText = new SplitText($(".goText"), { type: "chars,lines" });
 
         var numChars = mySplitText.chars.length;
-        gameOverSound.play();
-        for(var i = 0; i < numChars; i++){
-            this.timeline.from(mySplitText.chars[i], 0.8, {css:{y:getRandomInt(-75, 75), x:getRandomInt(-150, 150), rotation:getRandomInt(0, 720), autoAlpha:0}, ease:Back.easeOut}, i * 0.02, "dropIn");
+        gameBoard.playSound("gameOver");
+        for (var i = 0; i < numChars; i++) {
+            this.timeline.from(mySplitText.chars[i], 0.8, { css: { y: getRandomInt(-75, 75), x: getRandomInt(-150, 150), rotation: getRandomInt(0, 720), autoAlpha: 0 }, ease: Back.easeOut }, i * 0.02, "dropIn");
         }
-
-        //this.timeline.staggerTo(mySplitText.chars, 4, {css:{transformOrigin:"50% 50% -30px", rotationY:-360, rotationX:360, rotation:360}, ease:Elastic.easeInOut}, 0.02, "+=1");
     };
 
+    function WinBox(id) {
+        this.id = id || "winBox";
+        this.timeline = new TimelineLite();
+        this.remove = function () {
+            {
+                $("#" + this.id).remove();
+            }
+        }
+    }
+    WinBox.prototype = new GameObject();
+    WinBox.prototype.constructor = WinBox;
+    WinBox.prototype.html = function () {
+        var style = "style='font-size: " + scale(125) + "%;'";
+        var retval = " <div id='" + this.id + "' class='mcfWin' " + style + " >" +
+            "<div class=winValue>" +
+            "<div class='win1'>You Win!</div><br>" +
+            "<div class='win2'>Keep playing for a higher score!</div><br>" +
+            "<div class='win3'>(click to continue)</div>" +
+            "</div></div>";
+        return retval;
+    };
+    WinBox.prototype.render = function () {
+        gameBoard.element().append(this.html());
+        var div = this.element();
+        $("#" + this.id).on("click", this.remove);
+
+        TweenLite.set(div, { css: { perspective: 500, perspectiveOrigin: "50% 50%", transformStyle: "preserve-3d" } });
+        TweenLite.from(div, 0.75, { x: (gameBoard.tileSize * 4) });
+
+        var mySplitText1 = new SplitText($(".win1"), { type: "chars,lines" });
+        var mySplitText2 = new SplitText($(".win2"), { type: "chars,lines" });
+        var mySplitText3 = new SplitText($(".win3"), { type: "chars,lines" });
+
+        var numChars1 = mySplitText1.chars.length;
+        var numChars2 = mySplitText2.chars.length;
+        var numChars3 = mySplitText3.chars.length;
+        for (var i = 0; i < numChars1; i++) {
+            this.timeline.from(mySplitText1.chars[i], 0.8, { css: { y: getRandomInt(-75, 75), x: getRandomInt(-150, 150), rotation: getRandomInt(0, 720), autoAlpha: 0 }, ease: Back.easeOut }, i * 0.02, "dropIn");
+        }
+        for (var i = 0; i < numChars2; i++) {
+            this.timeline.from(mySplitText2.chars[i], 0.8, { css: { y: getRandomInt(-75, 75), x: getRandomInt(-150, 150), rotation: getRandomInt(0, 720), autoAlpha: 0 }, ease: Back.easeOut }, i * 0.02, "dropIn");
+        }
+        for (var i = 0; i < numChars3; i++) {
+            this.timeline.from(mySplitText3.chars[i], 0.8, { css: { y: getRandomInt(-75, 75), x: getRandomInt(-150, 150), rotation: getRandomInt(0, 720), autoAlpha: 0 }, ease: Back.easeOut }, i * 0.02, "dropIn");
+        }
+
+    }
 
 
     //object
@@ -303,6 +394,7 @@ $(function () {
         this.undoFailSafe = false;
         this.listeningForUndo = false;
         this.won = false;
+        this.soundEffects = true;
 
         var _tileSize = 0;
         Object.defineProperty(this, "tileSize", {
@@ -329,8 +421,8 @@ $(function () {
         });
 
         Object.defineProperty(this, "borderSize", {
-            get: function() {
-                return Math.floor((this.tileSize * this.boardSize) /10);
+            get: function () {
+                return Math.floor((this.tileSize * this.boardSize) / 10);
             }
         })
 
@@ -483,8 +575,8 @@ $(function () {
     GameBoard.prototype.render = function () {
         $("#container").append(this.html());
         this.spaces.forEach(function (e) {
-                gameBoard.element().append(e.html());
-            }
+            gameBoard.element().append(e.html());
+        }
         );
         this.attachInputEvents();
     };
@@ -519,6 +611,8 @@ $(function () {
     };
     GameBoard.prototype.startGame = function () {
 
+        tileFactory.reset();
+
         try {
             this.won == false;
             this.spaces.forEach(function (space) {
@@ -538,53 +632,41 @@ $(function () {
         finally {
             this.addTile();
             this.addTile();
-            TweenLite.set(".tile",{opacity:1});
-            //this.saveBoardState();
-            //this.attachInputEvents();
+            TweenLite.set(".tile", { opacity: 1 });
             gameBoard.listeningForMoves = true;
             controls.enableUndo();
         }
     };
     GameBoard.prototype.attachInputEvents = function () {
 
-        $("body").on("keydown", function() {
+        $("body").on("keydown", function () {
             gameBoard.onKeyDown(event);
         });
 
-        /*
-        //noinspection JSCheckFunctionSignatures
         gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
-        gameBoard.hammer.get("swipe").set({enable:true,direction:Hammer.DIRECTION_ALL,velocity:.5});
-        gameBoard.hammer.on("swipeup",gameBoard.onSwipeUp);
-        gameBoard.hammer.on("swiperight",gameBoard.onSwipeRight);
-        gameBoard.hammer.on("swipedown",gameBoard.onSwipeDown);
-        gameBoard.hammer.on("swipeleft",gameBoard.onSwipeLeft);
-        */
-        
-        gameBoard.hammer = new Hammer(document.getElementById("gameBoard"));
-        gameBoard.hammer.get("pan").set({direction:Hammer.DIRECTION_ALL, threshold:20});
-        gameBoard.hammer.on("panup",gameBoard.onSwipeUp);
-        gameBoard.hammer.on("panright",gameBoard.onSwipeRight);
-        gameBoard.hammer.on("pandown",gameBoard.onSwipeDown);
-        gameBoard.hammer.on("panleft",gameBoard.onSwipeLeft);
+        gameBoard.hammer.get("pan").set({ direction: Hammer.DIRECTION_ALL, threshold: 20 });
+        gameBoard.hammer.on("panup", gameBoard.onSwipeUp);
+        gameBoard.hammer.on("panright", gameBoard.onSwipeRight);
+        gameBoard.hammer.on("pandown", gameBoard.onSwipeDown);
+        gameBoard.hammer.on("panleft", gameBoard.onSwipeLeft);
     };
     GameBoard.prototype.onSwipeUp = function (event) {
-        gameBoard.onKeyDown({keyCode:38});
+        gameBoard.onKeyDown({ keyCode: 38 });
     };
     GameBoard.prototype.onSwipeDown = function (event) {
-        gameBoard.onKeyDown({keyCode:40});
+        gameBoard.onKeyDown({ keyCode: 40 });
     };
     GameBoard.prototype.onSwipeLeft = function (event) {
-        gameBoard.onKeyDown({keyCode:37});
+        gameBoard.onKeyDown({ keyCode: 37 });
     };
     GameBoard.prototype.onSwipeRight = function (event) {
-        gameBoard.onKeyDown({keyCode:39});
+        gameBoard.onKeyDown({ keyCode: 39 });
     };
     GameBoard.prototype.onKeyDown = function (event) {
         try {
             event.preventDefault();
         }
-        catch(er){}
+        catch (er) { }
 
         if (gameBoard.listeningForMoves) {
 
@@ -615,6 +697,7 @@ $(function () {
                         break;
                     case 39:  //east
                         direction = "east";
+                        //new WinBox().render();
                         break;
                     default:
                         gameBoard.listeningForMoves = true;
@@ -656,13 +739,12 @@ $(function () {
                 }
             }
             else {
-                // gameBoard.attachInputEvents();
                 gameBoard.listeningForMoves = true;
             }
         }
     };
     GameBoard.prototype.removeInputEvents = function () {
-        $("body").off();
+        $("gameBoard").off();
         this.hammer.destroy();
     };
     GameBoard.prototype.moveTiles = function (direction) {
@@ -728,7 +810,7 @@ $(function () {
         var adjacentTile = this.adjacentTile;
         var thisTile = this.thisTile;
         var thisSpace = this.thisSpace;
-        var ordinal = getRandomInt(1,4);
+        var ordinal = getRandomInt(1, 4);
         if (adjacentSpace) {
             if (adjacentTile) {
                 if (thisTile) {
@@ -738,19 +820,23 @@ $(function () {
                             adjacentTile.space = thisSpace;
                             this.okToAddTile = true;
                             this.movesThisTurn += 1;
-                            if(noSlideIsPlaying) {
-                                switch(ordinal) {
+                            if (noSlideIsPlaying) {
+                                switch (ordinal) {
                                     case 1:
-                                        slide1Sound.play();
+                                        //slide1Sound.play
+                                        this.playSound("slide1");
                                         break;
                                     case 2:
-                                        slide2Sound.play();
+                                        //slide2Sound.play();
+                                        this.playSound("slide2");
                                         break;
                                     case 3:
-                                        slide3Sound.play();
+                                        //slide3Sound.play();
+                                        this.playSound("slide3");
                                         break;
                                     case 4:
-                                        slide4Sound.play();
+                                        //slide4Sound.play();
+                                        this.playSound("slide4");
                                         break;
                                 }
                             }
@@ -763,20 +849,24 @@ $(function () {
                     adjacentTile.space = thisSpace;
                     this.okToAddTile = true;
                     this.movesThisTurn += 1;
-                    if(noSlideIsPlaying) {
+                    if (noSlideIsPlaying) {
 
-                        switch(ordinal) {
+                        switch (ordinal) {
                             case 1:
-                                slide1Sound.play();
+                                //slide1Sound.play
+                                this.playSound("slide1");
                                 break;
                             case 2:
-                                slide2Sound.play();
+                                //slide2Sound.play();
+                                this.playSound("slide2");
                                 break;
                             case 3:
-                                slide3Sound.play();
+                                //slide3Sound.play();
+                                this.playSound("slide3");
                                 break;
                             case 4:
-                                slide4Sound.play();
+                                //slide4Sound.play();
+                                this.playSound("slide4");
                                 break;
                         }
                     }
@@ -789,7 +879,7 @@ $(function () {
 
         if (this.turnIndex < 1) { return; }
         if (this.mulligans === 0) { return; }
-        if (this.listeningForUndo === false ) { return; }
+        if (this.listeningForUndo === false) { return; }
 
         try {
             this.allTiles = [];
@@ -837,8 +927,7 @@ $(function () {
             var max = this.maxTiles;
             if (activeTiles <= max) {
                 var randomSpace;
-                do
-                {
+                do {
                     rndA = Math.round(Math.random() * (this.matrix.length - 1));
                     rndB = Math.round(Math.random() * (this.matrix[0].length - 1));
                     randomSpace = this.matrix[rndA][rndB];
@@ -880,37 +969,64 @@ $(function () {
     };
     GameBoard.prototype.addTilesIfNecessary = function () {
 
-        if (this.okToAddTile) {
-            gameBoard.turnIndex += 1;
-            this.addTile();
-            this.okToAddTile = false;
+            if (this.okToAddTile) {
+                gameBoard.turnIndex += 1;
+                this.addTile();
+                this.okToAddTile = false;
+            }
+
+            gameBoard.listeningForMoves = true;
+
         }
-
-        gameBoard.listeningForMoves = true;
-
-    }
     GameBoard.prototype.finishedMovingTiles = function () {
-        //this.lookForRemainingMoves();
-        gameBoard.addTilesIfNecessary();
-        //gameBoard.endOfTurn();
-    }
+            gameBoard.addTilesIfNecessary();
+        }
     GameBoard.prototype.logPastStates = function () {
 
-        for (var i = 0; i < this.pastStates.length; i++) {
-            console.table(this.pastStates[i].board);
-            console.info(i, this.pastStates.length);
-            var turn = this.pastStates[i];
-            if (turn !== undefined) {
-                var rowOutput = "";
-                rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
-                rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
-                rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
-                rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
+            for (var i = 0; i < this.pastStates.length; i++) {
+                console.table(this.pastStates[i].board);
+                console.info(i, this.pastStates.length);
+                var turn = this.pastStates[i];
+                if (turn !== undefined) {
+                    var rowOutput = "";
+                    rowOutput += turn.board[0][0] + "  " + turn.board[0][1] + "  " + turn.board[0][2] + "  " + turn.board[0][3] + "\n";
+                    rowOutput += turn.board[1][0] + "  " + turn.board[1][1] + "  " + turn.board[1][2] + "  " + turn.board[1][3] + "\n";
+                    rowOutput += turn.board[2][0] + "  " + turn.board[2][1] + "  " + turn.board[2][2] + "  " + turn.board[2][3] + "\n";
+                    rowOutput += turn.board[3][0] + "  " + turn.board[3][1] + "  " + turn.board[3][2] + "  " + turn.board[3][3] + "\n";
 
+                }
+            }
+        };
+    GameBoard.prototype.playSound = function (soundName) {
+            if (this.soundEffects) {
+                switch (soundName) {
+                    case "slide1":
+                        createjs.Sound.play("slide1");
+                        break;
+                    case "slide2":
+                        createjs.Sound.play("slide2");
+                        break;
+                    case "slide3":
+                        createjs.Sound.play("slide3");
+                        break;
+                    case "slide4":
+                        createjs.Sound.play("slide4");
+                        break;
+                    case "applause":
+                        createjs.Sound.play("applause");
+                        break;
+                    case "bigMatch":
+                        createjs.Sound.play("bigMatch");
+                        break;
+                    case "smallMatch":
+                        createjs.Sound.play("smallMatch");
+                        break;
+                    case "gameOver":
+                        createjs.Sound.play("gameOver");
+                        break;
+                }
             }
         }
-    };
-
 
 
     //object
@@ -968,7 +1084,7 @@ $(function () {
                     aNewTile.size = values.indexOf(value);
                 }
                 else {
-                    throw("Tile Factory : createNewTile : Invalid Argument: value =" + value);
+                    throw ("Tile Factory : createNewTile : Invalid Argument: value =" + value);
                 }
             }
 
@@ -1069,11 +1185,11 @@ $(function () {
                 }
                 else if (newSpace == null) {
                     console.trace();
-                    throw("Tile2048.space:invalid argument. Argument is undefined");
+                    throw ("Tile2048.space:invalid argument. Argument is undefined");
                 }
                 else {
                     console.trace();
-                    throw("Tile2048.space:invalid argument.");
+                    throw ("Tile2048.space:invalid argument.");
                 }
                 return this;
             }
@@ -1123,22 +1239,29 @@ $(function () {
             this.factory.animateDuration,
             {
                 displayValue: this.value,
-                onComplete: function() {
-                    if(this.value >= 2048) {
+                onComplete: function () {
+                    if (this.value >= 2048) {
                         if (gameBoard.won == false) {
                             gameBoard.won == true;
-                            applauseSound.play();
+                            //applauseSound.play();
+                            //createjs.Sound.play("applause");
+                            gameBoard.playSound("applause");
+                            new WinBox().render();
                         }
                     }
                     if ((noMatchIsPlaying))
                         if (this.size > 10) {
-                            bigMatchSound.play();
+                            //bigMatchSound.play();
+                            //createjs.Sound.play("bigMatch");
+                            gameBoard.playSound("bigMatch");
                         }
                         else {
-                            smallMatchSound.play();
+                            //smallMatchSound.play();
+                            //createjs.Sound.play("smallMatch");
+                            gameBoard.playSound("smallMatch");
                         }
                     noMatchIsPlaying = false;
-                    },
+                },
                 onUpdate: this.updateTile,
                 callbackScope: this
             },
@@ -1156,8 +1279,8 @@ $(function () {
             " background-color:" + this.bgColor + ";" +
             " height:" + this.space.width + "px;" +
             " width:" + this.space.width + "px;" +
-            " border-width:" + ( this.space.width / 15 ) + "px;" +
-            " border-radius:" + ( this.space.width / 15 ) + "px; " +
+            " border-width:" + (this.space.width / 15) + "px;" +
+            " border-radius:" + (this.space.width / 15) + "px; " +
             " '>";
         var value = "<p class='value'>" + this.value + "</p>";
         var id = "<p class='id'>" + this.id + "</p>";
@@ -1192,12 +1315,8 @@ $(function () {
         this.needsToMove = false;
     };
     Tile2048.prototype.fadeIn = function () {
-        // this.timeline.from(this.element(), this.factory.animateDuration, {
-        //     autoAlpha: 0,
-        //     onComplete: function() { this.timeline = new TimelineLite(); },
-        //     callbackScope: this
-        // });
-        gameBoard.timeline.add(this.timeline,"+0.25");
+            
+        new TweenLite.fromTo(this.element(), 0.25,  {opacity: 0}, { opacity: 1 });
     };
     Tile2048.prototype.die = function () {
         this.timeline.to(this.element(),
@@ -1217,51 +1336,37 @@ $(function () {
 
     var noSlideIsPlaying = true;
     var noMatchIsPlaying = true;
-    var slide1Sound = document.getElementById("slide1");
-    var slide2Sound = document.getElementById("slide2");
-    var slide3Sound = document.getElementById("slide3");
-    var slide4Sound = document.getElementById("slide4");
-    var smallMatchSound = document.getElementById("smallMatch");
-    var bigMatchSound = document.getElementById("bigMatch");
-    var gameOverSound = document.getElementById("gameOver");
-    var applauseSound = document.getElementById("applause");
 
-    var controls = {
-        id: "controls",
-        html: function () {
-            var style = "style='width:" + ( gameBoard.element().outerWidth() / 2 ) + "px; " +
-                " height:" + gameBoard.tileSize + "px; " +
-                " font-size: " + scale(100) + "%;'";
-            var html = "   <div id='controls' style:'width:" + Math.floor(gameBoard.totalWidth()) + "px;' > " +
-                "           <button id='btnUndo' class='btn' " + style + ">Undo (" + gameBoard.mulligans + ")</button> " +
-                "           <button id='btnRestart' class='btn' " + style + ">New Game</button> " +
-                "   </div>";
-            return html;
-        },
-        render: function () {
-            $("#container").append(this.html());
-            $("#btnUndo").click(controls.undo);
-            this.enableUndo();
-            $("#btnRestart").click(controls.restart);
-        },
-        undo: function (eventArgs) {
-            gameBoard.undo();
-        },
-        updateMulligans: function () {
+    var soundqueue = new createjs.LoadQueue();
+    soundqueue.installPlugin(createjs.Sound);
+    soundqueue.addEventListener("complete", start);
+    soundqueue.loadManifest(
+        [   { id: "applause", src: "soundeffects/applause.mp3" },
+            { id: "bigMatch", src: "soundeffects/bigMatch.mp3" },
+            { id: "gameOver", src: "soundeffects/gameOver.mp3" },
+            { id: "slide1", src: "soundeffects/slide1.mp3" },
+            { id: "slide2", src: "soundeffects/slide2.mp3" },
+            { id: "slide3", src: "soundeffects/slide3.mp3" },
+            { id: "slide4", src: "soundeffects/slide4.mp3" },
+            { id: "smallMatch", src: "soundeffects/smallMatch.mp3" }
+        ]);
 
-            $("#btnUndo").text("Undo (" + parseInt(gameBoard.mulligans, 10) + ")");
-        },
-        restart: function () {
-            gameBoard.startGame();
-        },
-        disableUndo: function () {
-            gameBoard.listeningForUndo = false;
-        },
-        enableUndo: function() {
-            gameBoard.listeningForUndo = true;
+    $("#btnSound").on("click", function () {
+        if (gameBoard.soundEffects == true) {
+            gameBoard.soundEffects = false;
+            $("#btnSound").html("<center><img src='images\\soundOff.png' style='width:50px; height:50px; vertical-align:middle;' /> sounds off</center>");
+            console.log(gameBoard.id + ": sounds off");
         }
-    };
-
+        else {
+            gameBoard.soundEffects = true;
+            $("#btnSound").html(" <center><img src='images\\soundOn.png' style='width:50px; height:50px; vertical-align:middle;' /> sounds on</center>");
+            console.log(gameBoard.id + ": sounds on");
+        }
+    })
+        
+    function start() {
+        gameBoard.startGame();
+    }
 
     var gameBoard = new GameBoard("gameBoard");
     gameBoard.boardSize = 4;
@@ -1269,21 +1374,33 @@ $(function () {
     setScale();
     gameBoard.setup();
     var scoreBoard = new ScoreBoard("scoreBoard");
-    $("<div id='container' class='container' style='width:" + (gameBoard.totalWidth() + 2)  + "px;'></div>").appendTo("body");
+    $("<div id='container' class='container' style='width:" + (gameBoard.totalWidth() + 2) + "px;'></div>").appendTo("body");
     scoreBoard.render();
-    gameBoard.render();
     controls.render();
-    gameBoard.startGame();
-    /*
-    window.setTimeout(function () {
-        var winWidth = window.innerWidth;
-        var slideLeft = -5 - (winWidth);
-        var slideRight = winWidth + 5;
-        //console.log(slideLeft, slideRight);
-        TweenLite.to("#curtainA",.5,{x:slideLeft});
-        TweenLite.to("#title",.5,{x:slideLeft});
-        TweenLite.to("#curtainB",.5,{x:slideRight});
-        TweenLite.to("#instructions",.5,{x:slideRight});
-    }, 4000)
-    */
+    gameBoard.render();
+
 });
+
+function hideTitle() {
+    var winWidth = window.innerWidth;
+    var slideLeft = -5 - (winWidth);
+    var slideRight = winWidth + 5;
+    TweenLite.to("#curtainA", .5, { x: slideLeft });
+    TweenLite.to("#title", .5, { x: slideLeft });
+    TweenLite.to("#curtainB", .5, { x: slideRight });
+    TweenLite.to("#instructions", .5, { x: slideRight });
+    TweenLite.to("#soundControls", .5, { x: slideLeft });
+}
+
+function showTitle() {
+    var winWidth = window.innerWidth;
+    var slideLeft = 0;
+    var slideRight = 0;
+    TweenLite.to("#curtainA", .5, { x: slideLeft });
+    TweenLite.to("#title", .5, { x: slideLeft });
+    TweenLite.to("#curtainB", .5, { x: slideRight });
+    TweenLite.to("#instructions", .5, { x: slideRight });
+    TweenLite.to("#soundControls", .5, { x: slideLeft });
+}
+
+    

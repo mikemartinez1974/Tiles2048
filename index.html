@@ -9,46 +9,10 @@
     <link href='https://fonts.googleapis.com/css?family=Dosis:700' rel='stylesheet' type='text/css'>
 
     <!-- stylesheets -->
-    <link rel="stylesheet" href="2048.css"/>
+    <link rel="stylesheet" href="2048.css" />
 
-</head>
-<body>
-
-    <audio controls id="slide1" preload="auto">
-        <source src="/soundeffects/slide1.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="slide2" preload="auto">
-        <source src="/soundeffects/slide2.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="slide3" preload="auto">
-        <source src="/soundeffects/slide3.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="slide4" preload="auto">
-        <source src="/soundeffects/slide4.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="smallMatch" preload="auto">
-        <source src="/soundeffects/smallMatch.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="bigMatch" preload="auto">
-        <source src="/soundeffects/bigMatch.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="applause" preload="auto">
-        <source src="/soundeffects/applause.mp3" type="audio/mpeg">
-    </audio>
-    <audio controls id="gameOver" preload="auto">
-        <source src="/soundeffects/gameOver.mp3" type="audio/mpeg">
-    </audio>
-
-    <div id="curtainA" class="curtain"></div>
-    <div id="title">
-        <p class="big">2 0 4 8</p>
-        <p class="small">by Mike Martinez</p>
-    </div>
-    <div id="curtainB" class="curtain"></div>
-    <div id="instructions">
-        <p class="instructions">Use arrow keys or swipe board to move tiles up, down, left, or right.</p>
-        <p class="instructions">Tiles of equal value will merge and double when they collide. Try to get one to 2048!</p>
-    </div>
+    <!--<script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>-->
+    <script src="scripts/createjs.js"></script>
 
     <!-- jquery -->
     <script src="scripts/jquery.js"></script>
@@ -64,12 +28,38 @@
     <!-- colors -->
     <script src="scripts/color.js"></script>
 
-    <!-- touch events-->
+    <!-- touch events -->
     <script src="scripts/hammer.js"></script>
     <script src="scripts/jquery.hammer.js"></script>
 
     <!-- My app -->
     <script src="2048.js"></script>
+
+</head>
+<body>
+
+
+    <div id="curtainA" class="curtain"></div>
+    <div id="title">
+        <p class="big">2 0 4 8</p>
+        <p class="small">by Mike Martinez</p>
+    </div>
+    <div id="curtainB" class="curtain">
+
+    </div>
+
+    <div id="instructions" onclick="hideTitle()">
+        <p class="instructions">Use arrow keys or swipe board to move tiles up, down, left, or right.</p>
+        <p class="instructions">Tiles of equal value will merge and double when they collide. Try to get one to 2048!</p>
+        <p class="instructions"><center>click to continue</center></p>
+    </div>
+
+    <div id="soundControls" class="">
+        <button id="btnSound" class="btn">
+            <center><img src="images\soundOn.png" style="width:50px; height:50px; vertical-align:middle;" /> sounds on</center>
+        </button>
+    </div>
+
 
 
 </body>
